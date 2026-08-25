@@ -20,6 +20,7 @@ import com.example.asgm.screen.MainHubScreen
 import com.example.asgm.screen.MyReportsScreen
 import com.example.asgm.screen.NewPostScreen
 import com.example.asgm.screen.PostDetailScreen
+import com.example.asgm.screen.ProfileScreen
 import com.example.asgm.screen.ReportHazardScreen
 import com.example.asgm.screen.SafetyGuideDetailScreen
 import com.example.asgm.screen.SafetyGuideScreen
@@ -68,5 +69,12 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
             AdminAlertFormScreen(alertId = alertId, navController = navController)
         }
         composable("admin_posts") { AdminPostsScreen(navController) }
+        composable(
+            route = "profile/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
+            ProfileScreen(userId = userId, navController = navController)
+        }
     }
 }

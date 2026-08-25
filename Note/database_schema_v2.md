@@ -6,7 +6,7 @@ Source: `Note/yay.pdf` (original outline) + Community Feed addon module (this up
 
 | Table | Key Fields | Purpose |
 |---|---|---|
-| Users | Id, Password, Name, Role, Contact | Resident, Admin, Responder accounts |
+| Users | Id, Password, Name, Role, Contact, AvatarUri | Resident, Admin, Responder accounts; Contact doubles as the profile's Address field, AvatarUri is a picked photo's content Uri |
 | Reports | ReportID, UserID, Title, Location, Description, Status, Photo | Hazard submissions and tracking |
 | Alerts | AlertID, Title, Body, Priority, Timestamp | Community notices and warnings |
 | AlertAcknowledgements | AlertID, UserID, Timestamp | Per-user "Confirm Acknowledgment" on urgent alerts (composite PK, mirrors Likes) |
@@ -76,6 +76,15 @@ resident bottom nav bar. Three screens, all built on existing DAO methods (no ne
 | Manage Reports | `admin_reports` | `ReportDao.getAll()` / `.updateStatus()` — status chips (Pending/In Progress/Solved) per report |
 | Manage Alerts | `admin_alerts` + `admin_alert_form?alertId={id}` | `AlertDao` insert/update/delete; one form screen handles both Add (`alertId=-1`) and Edit |
 | Manage Posts | `admin_posts` | `PostDao.editByAdmin()` — edit any resident's post content |
+
+## Profile
+
+`ProfileScreen` (route `profile/{userId}`) is one screen for two cases: your own profile
+(editable: name, avatar via a photo picker, address) when `userId` matches the signed-in
+user, or a read-only view of someone else's profile otherwise. Reached from the Main Hub's
+account icon (own profile) and from tapping any post/comment author's name (their profile).
+Friends/connections between residents were considered and intentionally skipped — this is
+just profile editing plus "who is this person," not a social graph.
 
 Manage Contacts (EmergencyContacts) and Manage Guides (SafetyGuides) don't have Admin screens
 yet — they weren't in the original `yay.pdf` wireframes and are still just the seeded data.

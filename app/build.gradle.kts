@@ -38,12 +38,22 @@ android {
     }
 }
 
+// Coil 3.5.0 pulls in kotlin-stdlib 2.4.0, newer than this project's Kotlin compiler (2.2.10),
+// which fails with "compiled with an incompatible version of Kotlin". Pin the stdlib actually
+// used at compile/runtime back to the project's Kotlin version.
+configurations.all {
+    resolutionStrategy {
+        force("org.jetbrains.kotlin:kotlin-stdlib:${libs.versions.kotlin.get()}")
+    }
+}
+
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.coil.compose)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)

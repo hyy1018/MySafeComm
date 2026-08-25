@@ -1,5 +1,6 @@
 package com.example.asgm.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -144,7 +145,13 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(author?.name ?: currentPost.userId, style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                author?.name ?: currentPost.userId,
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.clickable {
+                                    navController.navigate("profile/${currentPost.userId}")
+                                }
+                            )
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 dateFormat.format(Date(currentPost.timestamp)),
@@ -190,7 +197,8 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                     CommentRow(
                         comment = comment,
                         canDelete = isOwnPost,
-                        onDelete = { commentPendingDelete = comment }
+                        onDelete = { commentPendingDelete = comment },
+                        onAuthorClick = { navController.navigate("profile/${comment.userId}") }
                     )
                 }
             }
@@ -238,12 +246,22 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
 }
 
 @Composable
-private fun CommentRow(comment: CommentEntity, canDelete: Boolean, onDelete: () -> Unit) {
+private fun CommentRow(
+    comment: CommentEntity,
+    canDelete: Boolean,
+    onDelete: () -> Unit,
+    onAuthorClick: () -> Unit
+) {
+    val context = LocalContext.current
+    val author by AppDatabase.getInstance(context).userDao().observeById(comment.userId)
+        .collectAsState(initial = null)
+
     Row(verticalAlignment = Alignment.Top) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = if (comment.userId == UserSession.currentUserId) "You" else comment.userId,
-                style = MaterialTheme.typography.labelMedium
+                text = if (comment.userId == UserSession.currentUserId) "You" else (author?.name ?: comment.userId),
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.clickable(onClick = onAuthorClick)
             )
             Text(comment.content, style = MaterialTheme.typography.bodyMedium)
         }

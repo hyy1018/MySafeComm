@@ -85,7 +85,8 @@ fun CommunityFeedScreen(navController: NavHostController) {
                 items(posts, key = { it.postId }) { post ->
                     PostCard(
                         post = post,
-                        onClick = { navController.navigate("community_post/${post.postId}") }
+                        onClick = { navController.navigate("community_post/${post.postId}") },
+                        onAuthorClick = { navController.navigate("profile/${post.userId}") }
                     )
                 }
             }
@@ -96,7 +97,7 @@ fun CommunityFeedScreen(navController: NavHostController) {
 private val postDateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
 
 @Composable
-private fun PostCard(post: PostEntity, onClick: () -> Unit) {
+private fun PostCard(post: PostEntity, onClick: () -> Unit, onAuthorClick: () -> Unit) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
     val likeCount by db.likeDao().getLikeCount(post.postId).collectAsState(initial = 0)
@@ -113,7 +114,11 @@ private fun PostCard(post: PostEntity, onClick: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(author?.name ?: post.userId, style = MaterialTheme.typography.titleSmall)
+                Text(
+                    author?.name ?: post.userId,
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.clickable(onClick = onAuthorClick)
+                )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     postDateFormat.format(Date(post.timestamp)),
