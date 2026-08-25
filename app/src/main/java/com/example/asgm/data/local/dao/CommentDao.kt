@@ -1,0 +1,20 @@
+package com.example.asgm.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.Query
+import com.example.asgm.data.local.entity.CommentEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface CommentDao {
+    @Insert
+    suspend fun insert(comment: CommentEntity): Long
+
+    @Delete
+    suspend fun delete(comment: CommentEntity)
+
+    @Query("SELECT * FROM comments WHERE postId = :postId ORDER BY timestamp ASC")
+    fun getByPost(postId: Long): Flow<List<CommentEntity>>
+}

@@ -1,0 +1,17 @@
+package com.example.asgm.data.local.entity
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+enum class UserRole {
+    RESIDENT, ADMIN, RESPONDER
+}
+
+@Entity(tableName = "users")
+data class UserEntity(
+    @PrimaryKey val id: String,
+    val password: String,
+    val name: String,
+    val role: UserRole,
+    val contact: String
+)

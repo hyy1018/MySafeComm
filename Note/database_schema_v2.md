@@ -1,0 +1,49 @@
+# My Safe Community App — Database Schema (v2)
+
+Source: `Note/yay.pdf` (original outline) + Community Feed addon module (this update).
+
+## Existing Tables (from yay.pdf)
+
+| Table | Key Fields | Purpose |
+|---|---|---|
+| Users | Id, Password, Name, Role, Contact | Resident, Admin, Responder accounts |
+| Reports | ReportID, UserID, Type, Location, Status, Photos | Hazard submissions and tracking |
+| Alerts | AlertID, Title, Body, Priority, Timestamp | Community notices and warnings |
+| EmergencyContacts | ServiceID, Name, PhoneNo, CategoryEmergency | Single-tap directory for Emergency Hub |
+| SafetyGuides | GuideID, CategorySafety, Steps | Procedural content for Safety Guide library |
+
+## New Tables — Community Feed Addon Module
+
+Reddit/Facebook-style feed: users upload posts, comment, and like; admin can edit posts.
+
+| Table | Key Fields | Purpose |
+|---|---|---|
+| Posts | PostID (PK), UserID (FK → Users.Id), Content, ImageURL, Timestamp, IsEdited, EditedByAdminID (FK → Users.Id, nullable) | User-uploaded posts; tracks if/who (admin) last edited a post |
+| Comments | CommentID (PK), PostID (FK → Posts.PostID), UserID (FK → Users.Id), Content, Timestamp | Comments on a post |
+| Likes | LikeID (PK), PostID (FK → Posts.PostID), UserID (FK → Users.Id), Timestamp | Like records; unique constraint on (PostID, UserID) to prevent duplicate likes and allow like-count queries |
+
+### Relationships
+- Users 1—N Posts (author)
+- Posts 1—N Comments
+- Posts 1—N Likes (unique per user per post)
+- Users 1—N Comments (author)
+- Users 1—N Likes
+- Users (Role = Admin) 0—N Posts edited (via EditedByAdminID)
+
+## Navigation Update
+
+Community Feed becomes its own top-level entry in the **Main Hub**, at the same level as Report, Alerts, Emergency Hub (SOS), and Safety Guide — not merged into any existing page.
+
+```
+Main Hub
+├── Report
+├── Alert
+├── SOS (Emergency Hub)
+├── Guide
+└── Community Feed   ← NEW
+      ├── Post List (view/upload posts)
+      ├── Post Detail (comments, like button)
+      └── Admin: Edit Post
+```
+
+Admin flow gains: **Manage Posts** (edit post content), alongside existing Manage Reports / Manage Alerts.
