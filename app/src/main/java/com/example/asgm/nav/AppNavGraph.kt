@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.asgm.screen.AlertScreen
 import com.example.asgm.screen.MainHubScreen
 import com.example.asgm.screen.MyReportsScreen
 import com.example.asgm.screen.PlaceholderScreen
@@ -21,7 +22,7 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         }
         composable("report") { ReportHazardScreen(navController) }
         composable("my_reports") { MyReportsScreen(navController) }
-        composable("alert") { PlaceholderScreen("Live Alerts", navController) }
+        composable("alert") { AlertScreen(navController) }
         composable("sos") { PlaceholderScreen("Emergency Hub", navController) }
         composable("guide") { PlaceholderScreen("Safety Guide", navController) }
         composable("community") { PlaceholderScreen("Community Feed", navController) }

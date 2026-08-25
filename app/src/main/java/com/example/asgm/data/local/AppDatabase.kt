@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.asgm.data.DemoSession
+import com.example.asgm.data.local.dao.AlertAcknowledgementDao
 import com.example.asgm.data.local.dao.AlertDao
 import com.example.asgm.data.local.dao.CommentDao
 import com.example.asgm.data.local.dao.EmergencyContactDao
@@ -15,6 +16,7 @@ import com.example.asgm.data.local.dao.PostDao
 import com.example.asgm.data.local.dao.ReportDao
 import com.example.asgm.data.local.dao.SafetyGuideDao
 import com.example.asgm.data.local.dao.UserDao
+import com.example.asgm.data.local.entity.AlertAcknowledgementEntity
 import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.local.entity.CommentEntity
 import com.example.asgm.data.local.entity.EmergencyContactEntity
@@ -29,6 +31,7 @@ import com.example.asgm.data.local.entity.UserEntity
         UserEntity::class,
         ReportEntity::class,
         AlertEntity::class,
+        AlertAcknowledgementEntity::class,
         EmergencyContactEntity::class,
         SafetyGuideEntity::class,
         PostEntity::class,
@@ -43,6 +46,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun reportDao(): ReportDao
     abstract fun alertDao(): AlertDao
+    abstract fun alertAcknowledgementDao(): AlertAcknowledgementDao
     abstract fun emergencyContactDao(): EmergencyContactDao
     abstract fun safetyGuideDao(): SafetyGuideDao
     abstract fun postDao(): PostDao
@@ -68,6 +72,41 @@ abstract class AppDatabase : RoomDatabase() {
                             "INSERT INTO users (id, password, name, role, contact) VALUES " +
                                 "('${DemoSession.CURRENT_USER_ID}', 'demo1234', 'Demo Resident', 'RESIDENT', '0000000000')"
                         )
+                        seedAlerts(db)
+                    }
+
+                    // Sample community notices so the Live Alerts feed isn't empty before an
+                    // Admin "Add Alert" screen exists.
+                    private fun seedAlerts(db: SupportSQLiteDatabase) {
+                        val now = System.currentTimeMillis()
+                        val alerts = listOf(
+                            Triple(
+                                "Water Main Maintenance",
+                                "Oakwood Sector - Blocks A-G, 14:00 - 18:00 (Today). Category: Infrastructure Maintenance.",
+                                "URGENT"
+                            ),
+                            Triple(
+                                "Community Town Hall Meeting",
+                                "Scheduled for Friday at 6:00 PM.",
+                                "INFO"
+                            ),
+                            Triple(
+                                "New Security Patrol Route",
+                                "Enhanced surveillance in Zone 4.",
+                                "INFO"
+                            ),
+                            Triple(
+                                "Park Cleaning Drive",
+                                "Volunteers needed this weekend.",
+                                "INFO"
+                            )
+                        )
+                        alerts.forEachIndexed { index, (title, body, priority) ->
+                            db.execSQL(
+                                "INSERT INTO alerts (title, body, priority, timestamp) VALUES " +
+                                    "('$title', '$body', '$priority', ${now - index * 1000})"
+                            )
+                        }
                     }
                 }).build().also { INSTANCE = it }
             }
