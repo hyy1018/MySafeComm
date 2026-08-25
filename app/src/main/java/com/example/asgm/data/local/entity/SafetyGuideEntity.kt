@@ -7,6 +7,6 @@ import androidx.room.PrimaryKey
 data class SafetyGuideEntity(
     @PrimaryKey(autoGenerate = true) val guideId: Long = 0,
     val categorySafety: String,
-    /** Ordered guide steps, one step per line. */
+    /** Ordered steps, one per line, each formatted as "Title||Description". */
     val steps: String
 )

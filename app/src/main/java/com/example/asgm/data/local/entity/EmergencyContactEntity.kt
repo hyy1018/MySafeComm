@@ -8,5 +8,8 @@ data class EmergencyContactEntity(
     @PrimaryKey(autoGenerate = true) val serviceId: Long = 0,
     val name: String,
     val phoneNo: String,
-    val categoryEmergency: String
+    /** Short description shown under the name, e.g. "Floods, trees, snakes". */
+    val categoryEmergency: String,
+    /** false = shown in the single-tap grid; true = shown under "Specialized Services". */
+    val isSpecialized: Boolean = false
 )

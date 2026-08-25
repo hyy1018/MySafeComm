@@ -10,8 +10,8 @@ Source: `Note/yay.pdf` (original outline) + Community Feed addon module (this up
 | Reports | ReportID, UserID, Title, Location, Description, Status, Photo | Hazard submissions and tracking |
 | Alerts | AlertID, Title, Body, Priority, Timestamp | Community notices and warnings |
 | AlertAcknowledgements | AlertID, UserID, Timestamp | Per-user "Confirm Acknowledgment" on urgent alerts (composite PK, mirrors Likes) |
-| EmergencyContacts | ServiceID, Name, PhoneNo, CategoryEmergency | Single-tap directory for Emergency Hub |
-| SafetyGuides | GuideID, CategorySafety, Steps | Procedural content for Safety Guide library |
+| EmergencyContacts | ServiceID, Name, PhoneNo, CategoryEmergency, IsSpecialized | Single-tap directory for Emergency Hub (IsSpecialized splits the primary grid from the "Specialized Services" list) |
+| SafetyGuides | GuideID, CategorySafety, Steps | Procedural content for Safety Guide library (Steps: one step per line, each formatted `Title||Description`) |
 
 ## New Tables — Community Feed Addon Module
 

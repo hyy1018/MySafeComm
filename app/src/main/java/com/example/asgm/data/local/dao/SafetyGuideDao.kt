@@ -16,4 +16,7 @@ interface SafetyGuideDao {
 
     @Query("SELECT * FROM safety_guides WHERE categorySafety = :category LIMIT 1")
     suspend fun getByCategory(category: String): SafetyGuideEntity?
+
+    @Query("SELECT * FROM safety_guides WHERE guideId = :guideId LIMIT 1")
+    fun getById(guideId: Long): Flow<SafetyGuideEntity?>
 }
