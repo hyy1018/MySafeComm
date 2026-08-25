@@ -11,6 +11,6 @@ interface EmergencyContactDao {
     @Insert
     suspend fun insert(contact: EmergencyContactEntity): Long
 
-    @Query("SELECT * FROM emergency_contacts ORDER BY categoryEmergency ASC")
+    @Query("SELECT * FROM emergency_contacts ORDER BY serviceId ASC")
     fun getAll(): Flow<List<EmergencyContactEntity>>
 }

@@ -38,7 +38,7 @@ import com.example.asgm.data.local.entity.UserEntity
         CommentEntity::class,
         LikeEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -142,11 +142,13 @@ abstract class AppDatabase : RoomDatabase() {
                             val specialized: Boolean
                         )
                         val contacts = listOf(
-                            Contact("Neighborhood Security", "012-345-6789", "Direct line to community patrol", false),
+                            // The four 99x emergency numbers fill the grid's first 2 rows...
                             Contact("General Emergency", "999", "Police and ambulance", false),
                             Contact("Scam Response", "997", "Report suspected scams", false),
                             Contact("Civil Defence (APM)", "991", "Floods, trees, snakes", false),
                             Contact("Fire and Rescue", "994", "Fire emergencies", false),
+                            // ...and Security, being the odd one out, gets centered on its own row.
+                            Contact("Neighborhood Security", "012-345-6789", "Direct line to community patrol", false),
                             Contact("Private Surgery", "03-1234-5678", "On-call urgent care center", true),
                             Contact("Mental Health Hotline", "03-8765-4321", "24/7 crisis support", true)
                         )

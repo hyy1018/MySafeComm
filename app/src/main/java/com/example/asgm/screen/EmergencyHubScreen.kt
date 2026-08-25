@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -31,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -76,8 +78,20 @@ fun EmergencyHubScreen(navController: NavHostController) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(primary, key = { it.serviceId }) { contact ->
+            // An odd count leaves one card without a row partner; center that last one on its
+            // own row instead of letting the grid strand it in the left column.
+            val gridContacts = if (primary.size % 2 == 1) primary.dropLast(1) else primary
+            val centeredContact = if (primary.size % 2 == 1) primary.lastOrNull() else null
+
+            items(gridContacts, key = { it.serviceId }) { contact ->
                 ContactCard(contact)
+            }
+            if (centeredContact != null) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        ContactCard(centeredContact, modifier = Modifier.fillMaxWidth(0.5f))
+                    }
+                }
             }
             if (specialized.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
@@ -104,11 +118,10 @@ private fun dialContact(context: android.content.Context, phoneNo: String) {
 }
 
 @Composable
-private fun ContactCard(contact: EmergencyContactEntity) {
+private fun ContactCard(contact: EmergencyContactEntity, modifier: Modifier = Modifier.fillMaxWidth()) {
     val context = LocalContext.current
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .clickable { dialContact(context, contact.phoneNo) }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

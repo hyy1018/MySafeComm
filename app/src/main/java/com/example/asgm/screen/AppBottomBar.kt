@@ -21,9 +21,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 private data class BottomNavItem(val route: String, val label: String, val icon: ImageVector)
 
 private val bottomNavItems = listOf(
+    BottomNavItem("main_hub", "Home", Icons.Filled.Home),
     BottomNavItem("report", "Report", Icons.Filled.ReportProblem),
     BottomNavItem("alert", "Alert", Icons.Filled.Notifications),
-    BottomNavItem("main_hub", "Home", Icons.Filled.Home),
     BottomNavItem("community", "Comm", Icons.Filled.Forum),
     BottomNavItem("sos", "SOS", Icons.Filled.Emergency),
     BottomNavItem("guide", "Guide", Icons.AutoMirrored.Filled.MenuBook)
