@@ -12,32 +12,64 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = BluePrimaryDark,
+    onPrimary = OnBluePrimaryDark,
+    primaryContainer = BluePrimaryContainerDark,
+    onPrimaryContainer = OnBluePrimaryContainerDark,
+    secondary = GreenSecondaryDark,
+    onSecondary = OnGreenSecondaryDark,
+    secondaryContainer = GreenSecondaryContainerDark,
+    onSecondaryContainer = OnGreenSecondaryContainerDark,
+    tertiary = AmberTertiaryDark,
+    onTertiary = OnAmberTertiaryDark,
+    tertiaryContainer = AmberTertiaryContainerDark,
+    onTertiaryContainer = OnAmberTertiaryContainerDark,
+    error = ErrorDark,
+    onError = OnErrorDark,
+    errorContainer = ErrorContainerDark,
+    onErrorContainer = OnErrorContainerDark,
+    background = BackgroundDark,
+    onBackground = OnBackgroundDark,
+    surface = BackgroundDark,
+    onSurface = OnBackgroundDark,
+    surfaceVariant = SurfaceVariantDark,
+    onSurfaceVariant = OnSurfaceVariantDark,
+    outline = OutlineDark
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = BluePrimaryLight,
+    onPrimary = OnBluePrimaryLight,
+    primaryContainer = BluePrimaryContainerLight,
+    onPrimaryContainer = OnBluePrimaryContainerLight,
+    secondary = GreenSecondaryLight,
+    onSecondary = OnGreenSecondaryLight,
+    secondaryContainer = GreenSecondaryContainerLight,
+    onSecondaryContainer = OnGreenSecondaryContainerLight,
+    tertiary = AmberTertiaryLight,
+    onTertiary = OnAmberTertiaryLight,
+    tertiaryContainer = AmberTertiaryContainerLight,
+    onTertiaryContainer = OnAmberTertiaryContainerLight,
+    error = ErrorLight,
+    onError = OnErrorLight,
+    errorContainer = ErrorContainerLight,
+    onErrorContainer = OnErrorContainerLight,
+    background = BackgroundLight,
+    onBackground = OnBackgroundLight,
+    surface = BackgroundLight,
+    onSurface = OnBackgroundLight,
+    surfaceVariant = SurfaceVariantLight,
+    onSurfaceVariant = OnSurfaceVariantLight,
+    outline = OutlineLight
 )
 
 @Composable
 fun AsgmTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // Off by default: dynamic color would replace this brand palette with one derived from the
+    // device wallpaper (Android 12+), which fights "keep the theme consistent" -- the app should
+    // look the same Guardian Sync blue/green/amber on every device and in every demo/screenshot.
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
