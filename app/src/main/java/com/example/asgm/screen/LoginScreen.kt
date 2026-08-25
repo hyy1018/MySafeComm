@@ -2,6 +2,7 @@ package com.example.asgm.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,13 +10,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -34,10 +40,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
@@ -71,26 +77,34 @@ fun LoginScreen(navController: NavHostController) {
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Brand header: gives the screen a visual anchor instead of everything floating on
-            // one flat background.
+            // Brand header: logo + app name only -- the screen's job is to get you to the login
+            // box, not to explain the app.
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.primary)
-                    .padding(horizontal = 24.dp, vertical = 40.dp),
+                    .padding(vertical = 48.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.onPrimary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Filled.Shield,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
                 Text(
                     "Guardian Sync",
                     style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
                     color = MaterialTheme.colorScheme.onPrimary
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    "Community safety, streamlined. Secure your neighborhood with real-time response.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
-                    textAlign = TextAlign.Center
                 )
             }
 
@@ -107,14 +121,6 @@ fun LoginScreen(navController: NavHostController) {
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Welcome Back", style = MaterialTheme.typography.titleLarge)
-                    Text(
-                        "Please sign in to your secure account",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(24.dp))
-
                     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                         SegmentedButton(
                             selected = selectedTab == LoginTab.USER,
@@ -146,7 +152,7 @@ fun LoginScreen(navController: NavHostController) {
                     OutlinedTextField(
                         value = userId,
                         onValueChange = { userId = it; errorMessage = null },
-                        label = { Text("User ID") },
+                        label = { Text(if (selectedTab == LoginTab.ADMIN) "Admin ID" else "User ID") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
