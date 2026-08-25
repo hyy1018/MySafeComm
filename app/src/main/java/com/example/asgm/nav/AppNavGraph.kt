@@ -7,9 +7,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.asgm.screen.AdminAddAdminScreen
 import com.example.asgm.screen.AdminAlertFormScreen
 import com.example.asgm.screen.AdminAlertsScreen
 import com.example.asgm.screen.AdminHubScreen
+import com.example.asgm.screen.AdminResetPasswordScreen
 import com.example.asgm.screen.AdminPostsScreen
 import com.example.asgm.screen.AdminReportsScreen
 import com.example.asgm.screen.AdminUsersScreen
@@ -71,6 +73,8 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         }
         composable("admin_posts") { AdminPostsScreen(navController) }
         composable("admin_users") { AdminUsersScreen(navController) }
+        composable("admin_add_admin") { AdminAddAdminScreen(navController) }
+        composable("admin_reset_password") { AdminResetPasswordScreen(navController) }
         composable(
             route = "profile/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })

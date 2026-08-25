@@ -1,0 +1,135 @@
+package com.example.asgm.screen
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.data.local.entity.UserEntity
+import com.example.asgm.data.local.entity.UserRole
+import kotlinx.coroutines.launch
+
+/** Admin screen: create another Admin account. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdminAddAdminScreen(navController: NavHostController) {
+    val context = LocalContext.current
+    val userDao = remember { AppDatabase.getInstance(context).userDao() }
+    val scope = rememberCoroutineScope()
+
+    var name by remember { mutableStateOf("") }
+    var id by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf<String?>(null) }
+    var isError by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Add Admin Account") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it; message = null },
+                label = { Text("Name") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = id,
+                onValueChange = { id = it; message = null },
+                label = { Text("New Admin ID") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it; message = null },
+                label = { Text("Password") },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth()
+            )
+            message?.let {
+                Text(
+                    it,
+                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            Button(
+                onClick = {
+                    val trimmedId = id.trim()
+                    val trimmedName = name.trim()
+                    if (trimmedId.isEmpty() || trimmedName.isEmpty() || password.isEmpty()) {
+                        isError = true
+                        message = "Fill in name, ID and password"
+                        return@Button
+                    }
+                    scope.launch {
+                        val existing = userDao.getById(trimmedId)
+                        if (existing != null) {
+                            isError = true
+                            message = "That ID is already taken"
+                        } else {
+                            userDao.insert(
+                                UserEntity(
+                                    id = trimmedId,
+                                    password = password,
+                                    name = trimmedName,
+                                    role = UserRole.ADMIN,
+                                    contact = ""
+                                )
+                            )
+                            isError = false
+                            message = "Admin account \"$trimmedId\" created"
+                            name = ""
+                            id = ""
+                            password = ""
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Add Admin")
+            }
+        }
+    }
+}
