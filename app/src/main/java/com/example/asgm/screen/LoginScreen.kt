@@ -153,6 +153,8 @@ fun LoginScreen(navController: NavHostController) {
                             user == null -> errorMessage = "Invalid ID or password"
                             selectedTab == LoginTab.ADMIN && user.role != UserRole.ADMIN ->
                                 errorMessage = "This account is not an admin account"
+                            selectedTab == LoginTab.USER && user.role == UserRole.ADMIN ->
+                                errorMessage = "Admin accounts must sign in from the Admin tab"
                             else -> {
                                 UserSession.login(user)
                                 navController.navigate("main_hub") {
