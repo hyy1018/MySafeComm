@@ -2,6 +2,7 @@ package com.example.asgm.data
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ReportProblem
 import com.example.asgm.model.MainHubItem
@@ -29,6 +30,13 @@ object AdminHubData {
             subtitle = "Edit Community Feed posts",
             icon = Icons.Filled.Forum,
             route = "admin_posts"
+        ),
+        MainHubItem(
+            id = "manage_users",
+            title = "Manage Users",
+            subtitle = "Add Admin accounts, reset a resident's password",
+            icon = Icons.Filled.ManageAccounts,
+            route = "admin_users"
         )
     )
 }
