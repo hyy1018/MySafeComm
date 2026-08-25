@@ -5,16 +5,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -23,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,6 +46,11 @@ import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.CommentEntity
 import com.example.asgm.data.local.entity.LikeEntity
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+private val dateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
 
 /** User screen: a single post with its comments and like button. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,8 +65,12 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
     val likeCount by db.likeDao().getLikeCount(postId).collectAsState(initial = 0)
     val liked by db.likeDao().isLikedByUser(postId, UserSession.requireUserId())
         .collectAsState(initial = false)
+    val author by db.userDao().observeById(post?.userId ?: "").collectAsState(initial = null)
 
     var commentText by remember { mutableStateOf("") }
+    var showDeletePostConfirm by remember { mutableStateOf(false) }
+
+    val isOwnPost = post?.userId == UserSession.currentUserId
 
     Scaffold(
         topBar = {
@@ -65,6 +79,13 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (isOwnPost) {
+                        IconButton(onClick = { showDeletePostConfirm = true }) {
+                            Icon(Icons.Filled.Delete, contentDescription = "Delete post")
+                        }
                     }
                 }
             )
@@ -121,6 +142,15 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
             ) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(author?.name ?: currentPost.userId, style = MaterialTheme.typography.titleSmall)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                dateFormat.format(Date(currentPost.timestamp)),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                         Text(currentPost.content, style = MaterialTheme.typography.bodyLarge)
                         if (currentPost.isEdited) {
                             Text(
@@ -156,20 +186,55 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                     }
                 }
                 items(comments, key = { it.commentId }) { comment ->
-                    CommentRow(comment)
+                    CommentRow(
+                        comment = comment,
+                        canDelete = isOwnPost,
+                        onDelete = { scope.launch { db.commentDao().delete(comment) } }
+                    )
                 }
             }
+        }
+
+        if (showDeletePostConfirm && currentPost != null) {
+            AlertDialog(
+                onDismissRequest = { showDeletePostConfirm = false },
+                title = { Text("Delete post?") },
+                text = { Text("This removes the post and its comments and likes. This cannot be undone.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        scope.launch {
+                            db.postDao().delete(currentPost)
+                            showDeletePostConfirm = false
+                            navController.popBackStack()
+                        }
+                    }) { Text("Delete") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeletePostConfirm = false }) { Text("Cancel") }
+                }
+            )
         }
     }
 }
 
 @Composable
-private fun CommentRow(comment: CommentEntity) {
-    Column {
-        Text(
-            text = if (comment.userId == UserSession.currentUserId) "You" else comment.userId,
-            style = MaterialTheme.typography.labelMedium
-        )
-        Text(comment.content, style = MaterialTheme.typography.bodyMedium)
+private fun CommentRow(comment: CommentEntity, canDelete: Boolean, onDelete: () -> Unit) {
+    Row(verticalAlignment = Alignment.Top) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = if (comment.userId == UserSession.currentUserId) "You" else comment.userId,
+                style = MaterialTheme.typography.labelMedium
+            )
+            Text(comment.content, style = MaterialTheme.typography.bodyMedium)
+        }
+        if (canDelete) {
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Filled.Delete,
+                    contentDescription = "Delete comment",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }

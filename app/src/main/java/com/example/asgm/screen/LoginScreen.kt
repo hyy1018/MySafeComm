@@ -134,6 +134,9 @@ fun LoginScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxWidth()
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = { navController.navigate("signup") }) {
+                    Text("Sign Up")
+                }
                 TextButton(
                     onClick = {
                         scope.launch { snackbarHostState.showSnackbar("Contact your community admin to reset your password") }
@@ -180,11 +183,7 @@ fun LoginScreen(navController: NavHostController) {
 
             Row {
                 Text("New to Guardian Sync? ", style = MaterialTheme.typography.bodyMedium)
-                TextButton(
-                    onClick = {
-                        scope.launch { snackbarHostState.showSnackbar("Contact your community admin for access") }
-                    }
-                ) {
+                TextButton(onClick = { navController.navigate("signup") }) {
                     Text("Request access")
                 }
             }

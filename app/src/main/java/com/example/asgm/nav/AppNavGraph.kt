@@ -18,11 +18,13 @@ import com.example.asgm.screen.PostDetailScreen
 import com.example.asgm.screen.ReportHazardScreen
 import com.example.asgm.screen.SafetyGuideDetailScreen
 import com.example.asgm.screen.SafetyGuideScreen
+import com.example.asgm.screen.SignUpScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = "login") {
         composable("login") { LoginScreen(navController) }
+        composable("signup") { SignUpScreen(navController) }
         composable("main_hub") {
             MainHubScreen(
                 navController = navController,

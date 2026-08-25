@@ -39,6 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.PostEntity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /** User screen: the community's Reddit/Facebook-style feed. Admin edit is deferred until Login/roles exist. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,12 +93,15 @@ fun CommunityFeedScreen(navController: NavHostController) {
     }
 }
 
+private val postDateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
+
 @Composable
 private fun PostCard(post: PostEntity, onClick: () -> Unit) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
     val likeCount by db.likeDao().getLikeCount(post.postId).collectAsState(initial = 0)
     val comments by db.commentDao().getByPost(post.postId).collectAsState(initial = emptyList())
+    val author by db.userDao().observeById(post.userId).collectAsState(initial = null)
 
     Card(
         modifier = Modifier
@@ -106,6 +112,15 @@ private fun PostCard(post: PostEntity, onClick: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(author?.name ?: post.userId, style = MaterialTheme.typography.titleSmall)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    postDateFormat.format(Date(post.timestamp)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             Text(
                 text = post.content,
                 style = MaterialTheme.typography.bodyLarge,
