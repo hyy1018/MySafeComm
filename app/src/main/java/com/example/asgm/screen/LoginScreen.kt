@@ -92,14 +92,24 @@ fun LoginScreen(navController: NavHostController) {
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 SegmentedButton(
                     selected = selectedTab == LoginTab.USER,
-                    onClick = { selectedTab = LoginTab.USER; errorMessage = null },
+                    onClick = {
+                        selectedTab = LoginTab.USER
+                        errorMessage = null
+                        userId = ""
+                        password = ""
+                    },
                     shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
                 ) {
                     Text("User")
                 }
                 SegmentedButton(
                     selected = selectedTab == LoginTab.ADMIN,
-                    onClick = { selectedTab = LoginTab.ADMIN; errorMessage = null },
+                    onClick = {
+                        selectedTab = LoginTab.ADMIN
+                        errorMessage = null
+                        userId = ""
+                        password = ""
+                    },
                     shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
                 ) {
                     Text("Admin")
@@ -149,12 +159,9 @@ fun LoginScreen(navController: NavHostController) {
                     scope.launch {
                         val user = userDao.login(id, password)
                         isLoggingIn = false
+                        val tabMatchesRole = (selectedTab == LoginTab.ADMIN) == (user?.role == UserRole.ADMIN)
                         when {
-                            user == null -> errorMessage = "Invalid ID or password"
-                            selectedTab == LoginTab.ADMIN && user.role != UserRole.ADMIN ->
-                                errorMessage = "This account is not an admin account"
-                            selectedTab == LoginTab.USER && user.role == UserRole.ADMIN ->
-                                errorMessage = "Admin accounts must sign in from the Admin tab"
+                            user == null || !tabMatchesRole -> errorMessage = "Invalid ID or password"
                             else -> {
                                 UserSession.login(user)
                                 navController.navigate("main_hub") {
