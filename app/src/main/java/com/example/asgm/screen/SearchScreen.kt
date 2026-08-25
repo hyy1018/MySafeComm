@@ -39,6 +39,7 @@ import com.example.asgm.data.local.entity.EmergencyContactEntity
 import com.example.asgm.data.local.entity.PostEntity
 import com.example.asgm.data.local.entity.ReportEntity
 import com.example.asgm.data.local.entity.SafetyGuideEntity
+import kotlinx.coroutines.flow.emptyFlow
 
 private data class SearchResult(val category: String, val title: String, val subtitle: String, val route: String)
 
@@ -52,7 +53,10 @@ fun SearchScreen(navController: NavHostController) {
 
     val posts by db.postDao().getAll().collectAsState(initial = emptyList())
     val alerts by db.alertDao().getAll().collectAsState(initial = emptyList())
-    val reports by db.reportDao().getByUser(UserSession.requireUserId()).collectAsState(initial = emptyList())
+    val userId = UserSession.currentUserId
+    val reports by (
+        if (userId != null) db.reportDao().getByUser(userId) else emptyFlow()
+    ).collectAsState(initial = emptyList())
     val guides by db.safetyGuideDao().getAll().collectAsState(initial = emptyList())
     val contacts by db.emergencyContactDao().getAll().collectAsState(initial = emptyList())
 

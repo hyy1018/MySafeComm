@@ -50,6 +50,7 @@ import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.AlertAcknowledgementEntity
 import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.local.entity.AlertPriority
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
 /** User screen: community notice feed. Admin's add/edit/delete alert screen is deferred until Login/roles exist. */
@@ -121,8 +122,10 @@ private fun AlertCard(
     val ackDao = remember { AppDatabase.getInstance(context).alertAcknowledgementDao() }
     val scope = rememberCoroutineScope()
     val isUrgent = alert.priority == AlertPriority.URGENT
-    val acknowledged by ackDao.isAcknowledgedByUser(alert.alertId, UserSession.requireUserId())
-        .collectAsState(initial = false)
+    val userId = UserSession.currentUserId
+    val acknowledged by (
+        if (userId != null) ackDao.isAcknowledgedByUser(alert.alertId, userId) else emptyFlow()
+    ).collectAsState(initial = false)
 
     Card(
         modifier = Modifier

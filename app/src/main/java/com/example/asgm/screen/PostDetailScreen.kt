@@ -46,6 +46,7 @@ import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.CommentEntity
 import com.example.asgm.data.local.entity.LikeEntity
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -64,8 +65,10 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
     val post by db.postDao().getById(postId).collectAsState(initial = null)
     val comments by db.commentDao().getByPost(postId).collectAsState(initial = emptyList())
     val likeCount by db.likeDao().getLikeCount(postId).collectAsState(initial = 0)
-    val liked by db.likeDao().isLikedByUser(postId, UserSession.requireUserId())
-        .collectAsState(initial = false)
+    val currentUserId = UserSession.currentUserId
+    val liked by (
+        if (currentUserId != null) db.likeDao().isLikedByUser(postId, currentUserId) else emptyFlow()
+    ).collectAsState(initial = false)
     val author by db.userDao().observeById(post?.userId ?: "").collectAsState(initial = null)
 
     var commentText by remember { mutableStateOf("") }

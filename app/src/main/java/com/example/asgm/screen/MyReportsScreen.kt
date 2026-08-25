@@ -36,6 +36,7 @@ import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportEntity
 import com.example.asgm.data.local.entity.ReportStatus
+import kotlinx.coroutines.flow.emptyFlow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -46,8 +47,10 @@ import java.util.Locale
 fun MyReportsScreen(navController: NavHostController) {
     val context = LocalContext.current
     val reportDao = remember { AppDatabase.getInstance(context).reportDao() }
-    val reports by reportDao.getByUser(UserSession.requireUserId())
-        .collectAsState(initial = emptyList())
+    val userId = UserSession.currentUserId
+    val reports by (
+        if (userId != null) reportDao.getByUser(userId) else emptyFlow()
+    ).collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {
