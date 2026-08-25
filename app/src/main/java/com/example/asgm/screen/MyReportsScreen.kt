@@ -31,7 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.asgm.data.DemoSession
+import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportEntity
 import com.example.asgm.data.local.entity.ReportStatus
@@ -45,7 +45,7 @@ import java.util.Locale
 fun MyReportsScreen(navController: NavHostController) {
     val context = LocalContext.current
     val reportDao = remember { AppDatabase.getInstance(context).reportDao() }
-    val reports by reportDao.getByUser(DemoSession.CURRENT_USER_ID)
+    val reports by reportDao.getByUser(UserSession.requireUserId())
         .collectAsState(initial = emptyList())
 
     Scaffold(

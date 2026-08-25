@@ -36,7 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.asgm.data.DemoSession
+import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportEntity
 import kotlinx.coroutines.launch
@@ -124,7 +124,7 @@ fun ReportHazardScreen(navController: NavHostController) {
                     scope.launch {
                         reportDao.insert(
                             ReportEntity(
-                                userId = DemoSession.CURRENT_USER_ID,
+                                userId = UserSession.requireUserId(),
                                 title = title.trim(),
                                 location = location.trim(),
                                 description = description.trim(),

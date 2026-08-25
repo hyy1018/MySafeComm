@@ -32,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.asgm.data.DemoSession
+import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.PostEntity
 import kotlinx.coroutines.launch
@@ -91,7 +91,7 @@ fun NewPostScreen(navController: NavHostController) {
                     scope.launch {
                         postDao.insert(
                             PostEntity(
-                                userId = DemoSession.CURRENT_USER_ID,
+                                userId = UserSession.requireUserId(),
                                 content = content.trim(),
                                 imageUri = photoUri?.toString()
                             )

@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
@@ -41,8 +40,8 @@ fun AppBottomBar(navController: NavHostController) {
                 onClick = {
                     if (currentRoute != item.route) {
                         if (item.route == "main_hub") {
-                            // Home is the start destination itself: pop straight back to it
-                            // instead of the saveState/restoreState dance below, which is only
+                            // Home is the post-login "base" screen itself: pop straight back to
+                            // it instead of the saveState/restoreState dance below, which is only
                             // meant for navigating between sibling destinations.
                             val poppedToHub = navController.popBackStack("main_hub", inclusive = false)
                             if (!poppedToHub) {
@@ -50,7 +49,10 @@ fun AppBottomBar(navController: NavHostController) {
                             }
                         } else {
                             navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
+                                // Anchor on "main_hub" explicitly, not graph.findStartDestination():
+                                // the NavHost's actual start destination is "login", which is no
+                                // longer on the back stack after a successful sign-in.
+                                popUpTo("main_hub") {
                                     saveState = true
                                 }
                                 launchSingleTop = true

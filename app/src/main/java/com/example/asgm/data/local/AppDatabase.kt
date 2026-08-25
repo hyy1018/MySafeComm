@@ -6,7 +6,6 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.example.asgm.data.DemoSession
 import com.example.asgm.data.local.dao.AlertAcknowledgementDao
 import com.example.asgm.data.local.dao.AlertDao
 import com.example.asgm.data.local.dao.CommentDao
@@ -72,11 +71,11 @@ abstract class AppDatabase : RoomDatabase() {
                     // Seeds run on every open (not just onCreate): fallbackToDestructiveMigration
                     // wipes tables without re-invoking onCreate, and each seed function below
                     // checks the table is empty first, so this stays idempotent and self-heals
-                    // after a destructive migration instead of leaving DemoSession's user missing
+                    // after a destructive migration instead of leaving the test accounts missing
                     // (which crashed Post/Comment/Like inserts with a FOREIGN KEY constraint error).
                     override fun onOpen(db: SupportSQLiteDatabase) {
                         super.onOpen(db)
-                        seedDemoUser(db)
+                        seedTestAccounts(db)
                         seedAlerts(db)
                         seedEmergencyContacts(db)
                         seedSafetyGuides(db)
@@ -89,10 +88,16 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
 
-                    private fun seedDemoUser(db: SupportSQLiteDatabase) {
+                    // Test accounts to sign in with on the Login screen until a Register/"Request
+                    // access" flow exists: resident1/demo1234 (User tab) and admin1/admin1234 (Admin tab).
+                    private fun seedTestAccounts(db: SupportSQLiteDatabase) {
                         db.execSQL(
                             "INSERT OR IGNORE INTO users (id, password, name, role, contact) VALUES " +
-                                "('${DemoSession.CURRENT_USER_ID}', 'demo1234', 'Demo Resident', 'RESIDENT', '0000000000')"
+                                "('resident1', 'demo1234', 'Demo Resident', 'RESIDENT', '0000000000')"
+                        )
+                        db.execSQL(
+                            "INSERT OR IGNORE INTO users (id, password, name, role, contact) VALUES " +
+                                "('admin1', 'admin1234', 'Demo Admin', 'ADMIN', '0000000000')"
                         )
                     }
 

@@ -19,6 +19,8 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,12 +29,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.asgm.data.MainHubData
+import com.example.asgm.data.UserSession
 import com.example.asgm.model.MainHubItem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +48,8 @@ fun MainHubScreen(
     navController: NavHostController,
     onNavigate: (String) -> Unit
 ) {
+    var showProfileMenu by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -49,8 +58,23 @@ fun MainHubScreen(
                     IconButton(onClick = {}) {
                         Icon(Icons.Filled.Search, contentDescription = "Search")
                     }
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = { showProfileMenu = true }) {
                         Icon(Icons.Filled.AccountCircle, contentDescription = "Profile")
+                    }
+                    DropdownMenu(
+                        expanded = showProfileMenu,
+                        onDismissRequest = { showProfileMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Logout") },
+                            onClick = {
+                                showProfileMenu = false
+                                UserSession.logout()
+                                navController.navigate("login") {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            }
+                        )
                     }
                 }
             )
@@ -73,6 +97,13 @@ fun MainHubScreen(
                 text = "Building safer, resilient neighborhoods",
                 style = MaterialTheme.typography.headlineSmall
             )
+            UserSession.currentUserName?.let { name ->
+                Text(
+                    text = "Welcome, $name",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
             Text(
                 text = "Stay informed, report hazards, and connect with your local " +
                     "emergency responders in real-time.",

@@ -45,7 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.asgm.data.DemoSession
+import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.AlertAcknowledgementEntity
 import com.example.asgm.data.local.entity.AlertEntity
@@ -121,7 +121,7 @@ private fun AlertCard(
     val ackDao = remember { AppDatabase.getInstance(context).alertAcknowledgementDao() }
     val scope = rememberCoroutineScope()
     val isUrgent = alert.priority == AlertPriority.URGENT
-    val acknowledged by ackDao.isAcknowledgedByUser(alert.alertId, DemoSession.CURRENT_USER_ID)
+    val acknowledged by ackDao.isAcknowledgedByUser(alert.alertId, UserSession.requireUserId())
         .collectAsState(initial = false)
 
     Card(
@@ -162,7 +162,7 @@ private fun AlertCard(
                                     ackDao.acknowledge(
                                         AlertAcknowledgementEntity(
                                             alertId = alert.alertId,
-                                            userId = DemoSession.CURRENT_USER_ID
+                                            userId = UserSession.requireUserId()
                                         )
                                     )
                                 }

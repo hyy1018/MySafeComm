@@ -48,3 +48,18 @@ Main Hub
 ```
 
 Admin flow gains: **Manage Posts** (edit post content), alongside existing Manage Reports / Manage Alerts.
+
+## Login
+
+`LoginScreen` is now the app's actual start destination, gating everything else; `UserSession`
+(in-memory, cleared on process death) tracks who is signed in, replacing the earlier hardcoded
+`DemoSession` placeholder. Two seeded test accounts (idempotent `INSERT OR IGNORE`, so they
+appear on every install without needing a fresh database):
+
+| ID | Password | Role |
+|---|---|---|
+| resident1 | demo1234 | RESIDENT |
+| admin1 | admin1234 | ADMIN |
+
+No Register/"Request access" flow exists yet — the Login screen's "Request access" link and
+"Forgot?" link just show a snackbar for now.

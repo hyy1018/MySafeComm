@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import com.example.asgm.screen.AlertScreen
 import com.example.asgm.screen.CommunityFeedScreen
 import com.example.asgm.screen.EmergencyHubScreen
+import com.example.asgm.screen.LoginScreen
 import com.example.asgm.screen.MainHubScreen
 import com.example.asgm.screen.MyReportsScreen
 import com.example.asgm.screen.NewPostScreen
@@ -20,7 +21,8 @@ import com.example.asgm.screen.SafetyGuideScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = "main_hub") {
+    NavHost(navController = navController, startDestination = "login") {
+        composable("login") { LoginScreen(navController) }
         composable("main_hub") {
             MainHubScreen(
                 navController = navController,

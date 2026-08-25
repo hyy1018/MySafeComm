@@ -36,7 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.asgm.data.DemoSession
+import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.CommentEntity
 import com.example.asgm.data.local.entity.LikeEntity
@@ -53,7 +53,7 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
     val post by db.postDao().getById(postId).collectAsState(initial = null)
     val comments by db.commentDao().getByPost(postId).collectAsState(initial = emptyList())
     val likeCount by db.likeDao().getLikeCount(postId).collectAsState(initial = 0)
-    val liked by db.likeDao().isLikedByUser(postId, DemoSession.CURRENT_USER_ID)
+    val liked by db.likeDao().isLikedByUser(postId, UserSession.requireUserId())
         .collectAsState(initial = false)
 
     var commentText by remember { mutableStateOf("") }
@@ -91,7 +91,7 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                                 db.commentDao().insert(
                                     CommentEntity(
                                         postId = postId,
-                                        userId = DemoSession.CURRENT_USER_ID,
+                                        userId = UserSession.requireUserId(),
                                         content = text
                                     )
                                 )
@@ -134,10 +134,10 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                                 onClick = {
                                     scope.launch {
                                         if (liked) {
-                                            db.likeDao().unlike(postId, DemoSession.CURRENT_USER_ID)
+                                            db.likeDao().unlike(postId, UserSession.requireUserId())
                                         } else {
                                             db.likeDao().like(
-                                                LikeEntity(postId = postId, userId = DemoSession.CURRENT_USER_ID)
+                                                LikeEntity(postId = postId, userId = UserSession.requireUserId())
                                             )
                                         }
                                     }
@@ -167,7 +167,7 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
 private fun CommentRow(comment: CommentEntity) {
     Column {
         Text(
-            text = if (comment.userId == DemoSession.CURRENT_USER_ID) "You" else comment.userId,
+            text = if (comment.userId == UserSession.currentUserId) "You" else comment.userId,
             style = MaterialTheme.typography.labelMedium
         )
         Text(comment.content, style = MaterialTheme.typography.bodyMedium)
