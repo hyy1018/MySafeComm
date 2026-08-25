@@ -21,4 +21,7 @@ interface AlertDao {
 
     @Query("SELECT * FROM alerts ORDER BY timestamp DESC")
     fun getAll(): Flow<List<AlertEntity>>
+
+    @Query("SELECT * FROM alerts WHERE alertId = :alertId LIMIT 1")
+    fun getById(alertId: Long): Flow<AlertEntity?>
 }

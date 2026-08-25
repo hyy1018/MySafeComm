@@ -7,6 +7,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.asgm.screen.AdminAlertFormScreen
+import com.example.asgm.screen.AdminAlertsScreen
+import com.example.asgm.screen.AdminHubScreen
+import com.example.asgm.screen.AdminPostsScreen
+import com.example.asgm.screen.AdminReportsScreen
 import com.example.asgm.screen.AlertScreen
 import com.example.asgm.screen.CommunityFeedScreen
 import com.example.asgm.screen.EmergencyHubScreen
@@ -52,5 +57,16 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
             val postId = backStackEntry.arguments?.getLong("postId") ?: 0L
             PostDetailScreen(postId = postId, navController = navController)
         }
+        composable("admin_hub") { AdminHubScreen(navController) }
+        composable("admin_reports") { AdminReportsScreen(navController) }
+        composable("admin_alerts") { AdminAlertsScreen(navController) }
+        composable(
+            route = "admin_alert_form?alertId={alertId}",
+            arguments = listOf(navArgument("alertId") { type = NavType.LongType; defaultValue = -1L })
+        ) { backStackEntry ->
+            val alertId = backStackEntry.arguments?.getLong("alertId") ?: -1L
+            AdminAlertFormScreen(alertId = alertId, navController = navController)
+        }
+        composable("admin_posts") { AdminPostsScreen(navController) }
     }
 }

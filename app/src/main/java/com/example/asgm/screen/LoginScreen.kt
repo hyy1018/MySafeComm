@@ -167,7 +167,8 @@ fun LoginScreen(navController: NavHostController) {
                             user == null || !tabMatchesRole -> errorMessage = "Invalid ID or password"
                             else -> {
                                 UserSession.login(user)
-                                navController.navigate("main_hub") {
+                                val destination = if (user.role == UserRole.ADMIN) "admin_hub" else "main_hub"
+                                navController.navigate(destination) {
                                     popUpTo("login") { inclusive = true }
                                 }
                             }

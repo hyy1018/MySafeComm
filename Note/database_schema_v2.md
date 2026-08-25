@@ -61,5 +61,21 @@ appear on every install without needing a fresh database):
 | resident1 | demo1234 | RESIDENT |
 | admin1 | admin1234 | ADMIN |
 
-No Register/"Request access" flow exists yet — the Login screen's "Request access" link and
-"Forgot?" link just show a snackbar for now.
+"Sign Up" (also reachable via "Request access") lets anyone self-register a RESIDENT account
+with just an ID + password (no name/contact collected, no way to self-register as Admin).
+"Forgot?" still just shows a snackbar — no reset flow has been designed yet.
+
+## Admin
+
+Logging in with an ADMIN-role account routes to `AdminHubScreen` instead of the resident
+`MainHubScreen` — a separate flow, matching the Login nav split in `yay.pdf`, without the
+resident bottom nav bar. Three screens, all built on existing DAO methods (no new tables):
+
+| Screen | Route | Backs onto |
+|---|---|---|
+| Manage Reports | `admin_reports` | `ReportDao.getAll()` / `.updateStatus()` — status chips (Pending/In Progress/Solved) per report |
+| Manage Alerts | `admin_alerts` + `admin_alert_form?alertId={id}` | `AlertDao` insert/update/delete; one form screen handles both Add (`alertId=-1`) and Edit |
+| Manage Posts | `admin_posts` | `PostDao.editByAdmin()` — edit any resident's post content |
+
+Manage Contacts (EmergencyContacts) and Manage Guides (SafetyGuides) don't have Admin screens
+yet — they weren't in the original `yay.pdf` wireframes and are still just the seeded data.
