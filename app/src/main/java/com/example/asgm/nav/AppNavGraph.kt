@@ -1,5 +1,9 @@
 package com.example.asgm.nav
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,7 +57,16 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         }
     }
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(
+        navController = navController,
+        startDestination = "login",
+        // Default NavHost switches screens instantly, which reads as flat/mechanical. A short
+        // slide+fade in each direction gives normal navigation an "app" feel at near-zero cost.
+        enterTransition = { slideInHorizontally(initialOffsetX = { it / 4 }) + fadeIn() },
+        exitTransition = { fadeOut(targetAlpha = 0.3f) },
+        popEnterTransition = { fadeIn() },
+        popExitTransition = { slideOutHorizontally(targetOffsetX = { it / 4 }) + fadeOut() }
+    ) {
         composable("login") { LoginScreen(navController) }
         composable("signup") { SignUpScreen(navController) }
         composable("main_hub") {
