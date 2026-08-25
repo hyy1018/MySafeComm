@@ -1,6 +1,7 @@
 package com.example.asgm.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,7 +76,7 @@ fun MyReportsScreen(navController: NavHostController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(reports, key = { it.reportId }) { report ->
-                    ReportCard(report)
+                    ReportCard(report) { navController.navigate("report_detail/${report.reportId}") }
                 }
             }
         }
@@ -85,8 +86,12 @@ fun MyReportsScreen(navController: NavHostController) {
 private val dateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
 
 @Composable
-private fun ReportCard(report: ReportEntity) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun ReportCard(report: ReportEntity, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)

@@ -28,4 +28,7 @@ interface ReportDao {
 
     @Query("SELECT * FROM reports WHERE userId = :userId ORDER BY timestamp DESC")
     fun getByUser(userId: String): Flow<List<ReportEntity>>
+
+    @Query("SELECT * FROM reports WHERE reportId = :reportId LIMIT 1")
+    fun getById(reportId: Long): Flow<ReportEntity?>
 }

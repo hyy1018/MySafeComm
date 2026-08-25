@@ -28,6 +28,7 @@ import com.example.asgm.screen.MyReportsScreen
 import com.example.asgm.screen.NewPostScreen
 import com.example.asgm.screen.PostDetailScreen
 import com.example.asgm.screen.ProfileScreen
+import com.example.asgm.screen.ReportDetailScreen
 import com.example.asgm.screen.ReportHazardScreen
 import com.example.asgm.screen.SafetyGuideDetailScreen
 import com.example.asgm.screen.SafetyGuideScreen
@@ -64,6 +65,13 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         composable("search") { SearchScreen(navController) }
         composable("report") { ReportHazardScreen(navController) }
         composable("my_reports") { MyReportsScreen(navController) }
+        composable(
+            route = "report_detail/{reportId}",
+            arguments = listOf(navArgument("reportId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val reportId = backStackEntry.arguments?.getLong("reportId") ?: 0L
+            ReportDetailScreen(reportId = reportId, navController = navController)
+        }
         composable("alert") { AlertScreen(navController) }
         composable("sos") { EmergencyHubScreen(navController) }
         composable("guide") { SafetyGuideScreen(navController) }
