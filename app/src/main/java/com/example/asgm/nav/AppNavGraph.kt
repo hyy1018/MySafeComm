@@ -1,12 +1,16 @@
 package com.example.asgm.nav
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.asgm.data.UserSession
 import com.example.asgm.screen.AdminAddAdminScreen
 import com.example.asgm.screen.AdminAlertFormScreen
 import com.example.asgm.screen.AdminAlertsScreen
@@ -30,8 +34,24 @@ import com.example.asgm.screen.SafetyGuideScreen
 import com.example.asgm.screen.SearchScreen
 import com.example.asgm.screen.SignUpScreen
 
+private val publicRoutes = setOf("login", "signup")
+
 @Composable
 fun AppNavGraph(navController: NavHostController = rememberNavController()) {
+    // UserSession is in-memory only, so it's empty after a process death (e.g. Android killing
+    // the app in the background while the system photo picker is in front). NavController's own
+    // back stack DOES survive process death, so without this guard a restored screen would still
+    // try to act as a signed-in user and crash on UserSession.requireUserId(). Redirect to Login
+    // instead whenever we land on a protected screen with no session.
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+    LaunchedEffect(currentRoute, UserSession.currentUserId) {
+        if (currentRoute != null && currentRoute !in publicRoutes && UserSession.currentUserId == null) {
+            navController.navigate("login") {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
     NavHost(navController = navController, startDestination = "login") {
         composable("login") { LoginScreen(navController) }
         composable("signup") { SignUpScreen(navController) }
