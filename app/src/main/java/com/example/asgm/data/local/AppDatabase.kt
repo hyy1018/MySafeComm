@@ -38,7 +38,7 @@ import com.example.asgm.data.local.entity.UserEntity
         CommentEntity::class,
         LikeEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -63,7 +63,12 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "my_safe_community.db"
-                ).addCallback(object : Callback() {
+                )
+                    // Dev-time convenience: the schema is still changing often. Recreate the
+                    // database instead of crashing when the version bumps with no Migration.
+                    // Replace with real Migrations before submission if user data must survive an update.
+                    .fallbackToDestructiveMigration(dropAllTables = true)
+                    .addCallback(object : Callback() {
                     // Seeds the demo resident account used by DemoSession until Login exists,
                     // so screens that write to Reports/Posts/etc. have a valid userId to point at.
                     override fun onCreate(db: SupportSQLiteDatabase) {
