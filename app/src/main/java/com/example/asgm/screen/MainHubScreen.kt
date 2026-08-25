@@ -47,7 +47,7 @@ fun MainHubScreen(
             TopAppBar(
                 title = { Text("My Safe Community") },
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = { navController.navigate("search") }) {
                         Icon(Icons.Filled.Search, contentDescription = "Search")
                     }
                     IconButton(

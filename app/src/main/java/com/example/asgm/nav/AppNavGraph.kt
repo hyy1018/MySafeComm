@@ -27,6 +27,7 @@ import com.example.asgm.screen.ProfileScreen
 import com.example.asgm.screen.ReportHazardScreen
 import com.example.asgm.screen.SafetyGuideDetailScreen
 import com.example.asgm.screen.SafetyGuideScreen
+import com.example.asgm.screen.SearchScreen
 import com.example.asgm.screen.SignUpScreen
 
 @Composable
@@ -40,6 +41,7 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
                 onNavigate = { route -> navController.navigate(route) }
             )
         }
+        composable("search") { SearchScreen(navController) }
         composable("report") { ReportHazardScreen(navController) }
         composable("my_reports") { MyReportsScreen(navController) }
         composable("alert") { AlertScreen(navController) }
