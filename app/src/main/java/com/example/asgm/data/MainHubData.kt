@@ -31,6 +31,13 @@ object MainHubData {
             isLive = true
         ),
         MainHubItem(
+            id = "community",
+            title = "Community Feed",
+            subtitle = "Share posts, comment & like with neighbours",
+            icon = Icons.Filled.Forum,
+            route = "community"
+        ),
+        MainHubItem(
             id = "sos",
             title = "Emergency Hub",
             subtitle = "Direct access to help",
@@ -43,13 +50,6 @@ object MainHubData {
             subtitle = "Tips & emergency protocols",
             icon = Icons.AutoMirrored.Filled.MenuBook,
             route = "guide"
-        ),
-        MainHubItem(
-            id = "community",
-            title = "Community Feed",
-            subtitle = "Share posts, comment & like with neighbours",
-            icon = Icons.Filled.Forum,
-            route = "community"
         )
     )
 }

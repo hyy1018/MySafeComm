@@ -24,9 +24,9 @@ private val bottomNavItems = listOf(
     BottomNavItem("report", "Report", Icons.Filled.ReportProblem),
     BottomNavItem("alert", "Alert", Icons.Filled.Notifications),
     BottomNavItem("main_hub", "Home", Icons.Filled.Home),
+    BottomNavItem("community", "Comm", Icons.Filled.Forum),
     BottomNavItem("sos", "SOS", Icons.Filled.Emergency),
-    BottomNavItem("guide", "Guide", Icons.AutoMirrored.Filled.MenuBook),
-    BottomNavItem("community", "Community", Icons.Filled.Forum)
+    BottomNavItem("guide", "Guide", Icons.AutoMirrored.Filled.MenuBook)
 )
 
 /** Shared bottom navigation bar, present on Main Hub and its sibling module screens. */
