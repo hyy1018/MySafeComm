@@ -40,12 +40,22 @@ fun AppBottomBar(navController: NavHostController) {
                 selected = currentRoute == item.route,
                 onClick = {
                     if (currentRoute != item.route) {
-                        navController.navigate(item.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                        if (item.route == "main_hub") {
+                            // Home is the start destination itself: pop straight back to it
+                            // instead of the saveState/restoreState dance below, which is only
+                            // meant for navigating between sibling destinations.
+                            val poppedToHub = navController.popBackStack("main_hub", inclusive = false)
+                            if (!poppedToHub) {
+                                navController.navigate("main_hub") { launchSingleTop = true }
                             }
-                            launchSingleTop = true
-                            restoreState = true
+                        } else {
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     }
                 },

@@ -69,22 +69,37 @@ abstract class AppDatabase : RoomDatabase() {
                     // Replace with real Migrations before submission if user data must survive an update.
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .addCallback(object : Callback() {
-                    // Seeds the demo resident account used by DemoSession until Login exists,
-                    // so screens that write to Reports/Posts/etc. have a valid userId to point at.
-                    override fun onCreate(db: SupportSQLiteDatabase) {
-                        super.onCreate(db)
-                        db.execSQL(
-                            "INSERT INTO users (id, password, name, role, contact) VALUES " +
-                                "('${DemoSession.CURRENT_USER_ID}', 'demo1234', 'Demo Resident', 'RESIDENT', '0000000000')"
-                        )
+                    // Seeds run on every open (not just onCreate): fallbackToDestructiveMigration
+                    // wipes tables without re-invoking onCreate, and each seed function below
+                    // checks the table is empty first, so this stays idempotent and self-heals
+                    // after a destructive migration instead of leaving DemoSession's user missing
+                    // (which crashed Post/Comment/Like inserts with a FOREIGN KEY constraint error).
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        super.onOpen(db)
+                        seedDemoUser(db)
                         seedAlerts(db)
                         seedEmergencyContacts(db)
                         seedSafetyGuides(db)
                     }
 
+                    private fun rowCount(db: SupportSQLiteDatabase, table: String): Int {
+                        db.query("SELECT COUNT(*) FROM $table").use { cursor ->
+                            cursor.moveToFirst()
+                            return cursor.getInt(0)
+                        }
+                    }
+
+                    private fun seedDemoUser(db: SupportSQLiteDatabase) {
+                        db.execSQL(
+                            "INSERT OR IGNORE INTO users (id, password, name, role, contact) VALUES " +
+                                "('${DemoSession.CURRENT_USER_ID}', 'demo1234', 'Demo Resident', 'RESIDENT', '0000000000')"
+                        )
+                    }
+
                     // Sample community notices so the Live Alerts feed isn't empty before an
                     // Admin "Add Alert" screen exists.
                     private fun seedAlerts(db: SupportSQLiteDatabase) {
+                        if (rowCount(db, "alerts") > 0) return
                         val now = System.currentTimeMillis()
                         val alerts = listOf(
                             Triple(
@@ -119,6 +134,7 @@ abstract class AppDatabase : RoomDatabase() {
                     // Sample directory so the Emergency Hub grid isn't empty before an Admin
                     // "Manage Contacts" screen exists.
                     private fun seedEmergencyContacts(db: SupportSQLiteDatabase) {
+                        if (rowCount(db, "emergency_contacts") > 0) return
                         data class Contact(
                             val name: String,
                             val phone: String,
@@ -145,6 +161,7 @@ abstract class AppDatabase : RoomDatabase() {
                     // Sample step-by-step guides so the Safety Guide screens aren't empty before
                     // an Admin "Manage Guides" screen exists.
                     private fun seedSafetyGuides(db: SupportSQLiteDatabase) {
+                        if (rowCount(db, "safety_guides") > 0) return
                         val fireSteps = listOf(
                             "Assess the Situation||Immediately identify the source and size of the fire. If it is larger than a small trash can, do not attempt to fight it yourself.",
                             "Alert the Household||Shout FIRE loudly to ensure everyone is awake and aware. Use the persistent SOS button in the app to notify community responders immediately.",
