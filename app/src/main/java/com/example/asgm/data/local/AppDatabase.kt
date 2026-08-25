@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.asgm.data.DemoSession
 import com.example.asgm.data.local.dao.AlertDao
 import com.example.asgm.data.local.dao.CommentDao
 import com.example.asgm.data.local.dao.EmergencyContactDao
@@ -57,7 +59,17 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "my_safe_community.db"
-                ).build().also { INSTANCE = it }
+                ).addCallback(object : Callback() {
+                    // Seeds the demo resident account used by DemoSession until Login exists,
+                    // so screens that write to Reports/Posts/etc. have a valid userId to point at.
+                    override fun onCreate(db: SupportSQLiteDatabase) {
+                        super.onCreate(db)
+                        db.execSQL(
+                            "INSERT INTO users (id, password, name, role, contact) VALUES " +
+                                "('${DemoSession.CURRENT_USER_ID}', 'demo1234', 'Demo Resident', 'RESIDENT', '0000000000')"
+                        )
+                    }
+                }).build().also { INSTANCE = it }
             }
     }
 }

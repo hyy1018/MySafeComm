@@ -24,7 +24,7 @@ enum class ReportStatus {
 data class ReportEntity(
     @PrimaryKey(autoGenerate = true) val reportId: Long = 0,
     val userId: String,
-    val type: String,
+    val title: String,
     val location: String,
     val description: String,
     val status: ReportStatus = ReportStatus.PENDING,
