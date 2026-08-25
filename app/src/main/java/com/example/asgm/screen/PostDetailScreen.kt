@@ -69,6 +69,7 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
 
     var commentText by remember { mutableStateOf("") }
     var showDeletePostConfirm by remember { mutableStateOf(false) }
+    var commentPendingDelete by remember { mutableStateOf<CommentEntity?>(null) }
 
     val isOwnPost = post?.userId == UserSession.currentUserId
 
@@ -189,7 +190,7 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                     CommentRow(
                         comment = comment,
                         canDelete = isOwnPost,
-                        onDelete = { scope.launch { db.commentDao().delete(comment) } }
+                        onDelete = { commentPendingDelete = comment }
                     )
                 }
             }
@@ -211,6 +212,25 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeletePostConfirm = false }) { Text("Cancel") }
+                }
+            )
+        }
+
+        commentPendingDelete?.let { comment ->
+            AlertDialog(
+                onDismissRequest = { commentPendingDelete = null },
+                title = { Text("Delete comment?") },
+                text = { Text("This cannot be undone.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        scope.launch {
+                            db.commentDao().delete(comment)
+                            commentPendingDelete = null
+                        }
+                    }) { Text("Delete") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { commentPendingDelete = null }) { Text("Cancel") }
                 }
             )
         }
