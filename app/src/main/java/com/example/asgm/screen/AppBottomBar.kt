@@ -3,6 +3,7 @@ package com.example.asgm.screen
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Emergency
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ReportProblem
@@ -24,7 +25,8 @@ private val bottomNavItems = listOf(
     BottomNavItem("alert", "Alert", Icons.Filled.Notifications),
     BottomNavItem("main_hub", "Home", Icons.Filled.Home),
     BottomNavItem("sos", "SOS", Icons.Filled.Emergency),
-    BottomNavItem("guide", "Guide", Icons.AutoMirrored.Filled.MenuBook)
+    BottomNavItem("guide", "Guide", Icons.AutoMirrored.Filled.MenuBook),
+    BottomNavItem("community", "Community", Icons.Filled.Forum)
 )
 
 /** Shared bottom navigation bar, present on Main Hub and its sibling module screens. */
