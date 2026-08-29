@@ -37,7 +37,7 @@ import com.example.asgm.data.local.entity.UserEntity
         CommentEntity::class,
         LikeEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -88,16 +88,16 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
 
-                    // Test accounts to sign in with on the Login screen until a Register/"Request
-                    // access" flow exists: resident1/demo1234 (User tab) and admin1/admin1234 (Admin tab).
+                    // Only two test accounts to sign in with on the Login screen:
+                    // test1/abc123456 (User tab) and admin1/abc123456 (Admin tab).
                     private fun seedTestAccounts(db: SupportSQLiteDatabase) {
                         db.execSQL(
                             "INSERT OR IGNORE INTO users (id, password, name, role, phone, email) VALUES " +
-                                "('resident1', 'demo1234', 'Demo Resident', 'RESIDENT', '0000000000', 'resident1@example.com')"
+                                "('test1', 'abc123456', 'Test User', 'RESIDENT', '0000000000', 'test1@example.com')"
                         )
                         db.execSQL(
                             "INSERT OR IGNORE INTO users (id, password, name, role, phone, email) VALUES " +
-                                "('admin1', 'admin1234', 'Demo Admin', 'ADMIN', '0000000000', 'admin1@example.com')"
+                                "('admin1', 'abc123456', 'Demo Admin', 'ADMIN', '0000000000', 'admin1@example.com')"
                         )
                     }
 

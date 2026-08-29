@@ -58,8 +58,8 @@ appear on every install without needing a fresh database):
 
 | ID | Password | Role |
 |---|---|---|
-| resident1 | demo1234 | RESIDENT |
-| admin1 | admin1234 | ADMIN |
+| test1 | abc123456 | RESIDENT |
+| admin1 | abc123456 | ADMIN |
 
 "Sign Up" lets anyone self-register a RESIDENT account with just an ID + password (no way to
 self-register as Admin). Passwords everywhere they're set (Sign Up, Admin's Add Admin, Admin's
