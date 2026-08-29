@@ -24,4 +24,11 @@ interface AlertDao {
 
     @Query("SELECT * FROM alerts WHERE alertId = :alertId LIMIT 1")
     fun getById(alertId: Long): Flow<AlertEntity?>
+
+    /** Drives the bottom-nav Alert badge: urgent notices this user hasn't confirmed yet. */
+    @Query(
+        "SELECT COUNT(*) FROM alerts WHERE priority = 'URGENT' AND alertId NOT IN " +
+            "(SELECT alertId FROM alert_acknowledgements WHERE userId = :userId)"
+    )
+    fun getUnacknowledgedUrgentCount(userId: String): Flow<Int>
 }

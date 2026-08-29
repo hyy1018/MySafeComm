@@ -7,15 +7,22 @@ import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ReportProblem
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.asgm.data.UserSession
+import com.example.asgm.data.local.AppDatabase
+import kotlinx.coroutines.flow.emptyFlow
 
 private data class BottomNavItem(val route: String, val label: String, val icon: ImageVector)
 
@@ -32,6 +39,17 @@ private val bottomNavItems = listOf(
 @Composable
 fun AppBottomBar(navController: NavHostController) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+    val context = LocalContext.current
+    val userId = UserSession.currentUserId
+    // Gives residents a reason to check Alert: a red badge when there's an urgent notice they
+    // haven't confirmed yet, instead of relying on them to remember to look.
+    val unacknowledgedUrgentCount by (
+        if (userId != null) {
+            AppDatabase.getInstance(context).alertDao().getUnacknowledgedUrgentCount(userId)
+        } else {
+            emptyFlow()
+        }
+    ).collectAsState(initial = 0)
 
     NavigationBar {
         bottomNavItems.forEach { item ->
@@ -61,7 +79,15 @@ fun AppBottomBar(navController: NavHostController) {
                         }
                     }
                 },
-                icon = { Icon(item.icon, contentDescription = item.label) },
+                icon = {
+                    if (item.route == "alert" && unacknowledgedUrgentCount > 0) {
+                        BadgedBox(badge = { Badge { Text("$unacknowledgedUrgentCount") } }) {
+                            Icon(item.icon, contentDescription = item.label)
+                        }
+                    } else {
+                        Icon(item.icon, contentDescription = item.label)
+                    }
+                },
                 label = { Text(item.label) }
             )
         }

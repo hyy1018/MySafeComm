@@ -42,6 +42,11 @@ import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.local.entity.AlertPriority
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+private val adminAlertDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
 /** Admin screen: create, edit, and remove community notices. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,6 +105,15 @@ fun AdminAlertsScreen(navController: NavHostController) {
                             )
                             Text(alert.title, style = MaterialTheme.typography.titleMedium)
                             Text(alert.body, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                buildString {
+                                    append(adminAlertDateFormat.format(Date(alert.timestamp)))
+                                    if (alert.location.isNotBlank()) append(" - ${alert.location}")
+                                    if (alert.issuedBy.isNotBlank()) append(" - by ${alert.issuedBy}")
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 TextButton(
                                     onClick = { navController.navigate("admin_alert_form?alertId=${alert.alertId}") }

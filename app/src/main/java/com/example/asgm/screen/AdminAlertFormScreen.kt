@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.local.entity.AlertPriority
@@ -52,6 +53,7 @@ fun AdminAlertFormScreen(alertId: Long, navController: NavHostController) {
 
     var title by remember { mutableStateOf("") }
     var body by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
     var priority by remember { mutableStateOf(AlertPriority.INFO) }
     var loadedExisting by remember { mutableStateOf(false) }
 
@@ -60,6 +62,7 @@ fun AdminAlertFormScreen(alertId: Long, navController: NavHostController) {
             existingAlert?.let {
                 title = it.title
                 body = it.body
+                location = it.location
                 priority = it.priority
                 loadedExisting = true
             }
@@ -99,6 +102,14 @@ fun AdminAlertFormScreen(alertId: Long, navController: NavHostController) {
                 minLines = 3,
                 modifier = Modifier.fillMaxWidth()
             )
+            OutlinedTextField(
+                value = location,
+                onValueChange = { location = it },
+                label = { Text("Location") },
+                placeholder = { Text("e.g., Oakwood Sector, Blocks A-G") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 SegmentedButton(
                     selected = priority == AlertPriority.INFO,
@@ -116,11 +127,19 @@ fun AdminAlertFormScreen(alertId: Long, navController: NavHostController) {
                     scope.launch {
                         if (isEditing) {
                             existingAlert?.let {
-                                alertDao.update(it.copy(title = title.trim(), body = body.trim(), priority = priority))
+                                alertDao.update(
+                                    it.copy(title = title.trim(), body = body.trim(), location = location.trim(), priority = priority)
+                                )
                             }
                         } else {
                             alertDao.insert(
-                                AlertEntity(title = title.trim(), body = body.trim(), priority = priority)
+                                AlertEntity(
+                                    title = title.trim(),
+                                    body = body.trim(),
+                                    location = location.trim(),
+                                    priority = priority,
+                                    issuedBy = UserSession.currentUserName ?: "Community Admin"
+                                )
                             )
                         }
                         navController.popBackStack()

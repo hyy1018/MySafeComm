@@ -52,6 +52,11 @@ import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.local.entity.AlertPriority
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+private val alertDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
 /** User screen: community notice feed. Admin's add/edit/delete alert screen is deferred until Login/roles exist. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,6 +151,14 @@ private fun AlertCard(
             if (expanded) {
                 Spacer(Modifier.height(8.dp))
                 Text(alert.body, style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(8.dp))
+                NoticeMetaRow(label = "Date", value = alertDateFormat.format(Date(alert.timestamp)))
+                if (alert.location.isNotBlank()) {
+                    NoticeMetaRow(label = "Location", value = alert.location)
+                }
+                if (alert.issuedBy.isNotBlank()) {
+                    NoticeMetaRow(label = "Issued by", value = alert.issuedBy)
+                }
                 if (isUrgent) {
                     Spacer(Modifier.height(12.dp))
                     if (acknowledged) {
@@ -178,6 +191,19 @@ private fun AlertCard(
                 }
             }
         }
+    }
+}
+
+/** A formal "official notice" style label/value line, e.g. "Date: Aug 26, 2026". */
+@Composable
+private fun NoticeMetaRow(label: String, value: String) {
+    Row {
+        Text(
+            "$label: ",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(value, style = MaterialTheme.typography.labelMedium)
     }
 }
 
