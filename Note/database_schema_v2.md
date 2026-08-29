@@ -6,10 +6,10 @@ Source: `Note/yay.pdf` (original outline) + Community Feed addon module (this up
 
 | Table | Key Fields | Purpose |
 |---|---|---|
-| Users | Id, Password, Name, Role, Contact, AvatarUri | Resident, Admin, Responder accounts; Contact doubles as the profile's Address field, AvatarUri is a picked photo's content Uri |
+| Users | Id, Password, Name, Role, Phone, Address, Email, AvatarUri | Resident, Admin, Responder accounts (Phone/Address/Email split into their own columns; were briefly one shared "Contact" field) |
 | Reports | ReportID, UserID, Title, Location, Description, Status, Photo | Hazard submissions and tracking |
-| Alerts | AlertID, Title, Body, Priority, Timestamp | Community notices and warnings |
-| AlertAcknowledgements | AlertID, UserID, Timestamp | Per-user "Confirm Acknowledgment" on urgent alerts (composite PK, mirrors Likes) |
+| Alerts | AlertID, Title, Body, Priority, Location, IssuedBy, Timestamp | Community notices, formatted as formal official notices (Location + IssuedBy + Timestamp-as-date) |
+| AlertAcknowledgements | AlertID, UserID, Timestamp | Per-user "Confirm Acknowledgment" on urgent alerts (composite PK, mirrors Likes); also backs a red badge on the bottom nav's Alert tab (`AlertDao.getUnacknowledgedUrgentCount`) when one exists |
 | EmergencyContacts | ServiceID, Name, PhoneNo, CategoryEmergency, IsSpecialized | Single-tap directory for Emergency Hub (IsSpecialized splits the primary grid from the "Specialized Services" list) |
 | SafetyGuides | GuideID, CategorySafety, Steps | Procedural content for Safety Guide library (Steps: one step per line, each formatted `Title||Description`) |
 
@@ -61,9 +61,14 @@ appear on every install without needing a fresh database):
 | resident1 | demo1234 | RESIDENT |
 | admin1 | admin1234 | ADMIN |
 
-"Sign Up" (also reachable via "Request access") lets anyone self-register a RESIDENT account
-with just an ID + password (no name/contact collected, no way to self-register as Admin).
-"Forgot?" still just shows a snackbar — no reset flow has been designed yet.
+"Sign Up" lets anyone self-register a RESIDENT account with just an ID + password (no way to
+self-register as Admin). Passwords everywhere they're set (Sign Up, Admin's Add Admin, Admin's
+Reset Password) must satisfy `PasswordRules`: 6+ characters, at least one letter and one digit.
+Sign Up hands off to `CompleteProfileScreen` (route `complete_profile`) before Main Hub is
+reachable — a mandatory step collecting name, email (validated with `Patterns.EMAIL_ADDRESS`),
+and optional phone/address/avatar. "Forgot?" still just shows a snackbar — Admin's Manage Users
+(Reset User Password) is the actual way a lost password gets recovered, since no reset flow was
+designed.
 
 ## Admin
 
@@ -80,11 +85,17 @@ resident bottom nav bar. Three screens, all built on existing DAO methods (no ne
 ## Profile
 
 `ProfileScreen` (route `profile/{userId}`) is one screen for two cases: your own profile
-(editable: name, avatar via a photo picker, address) when `userId` matches the signed-in
-user, or a read-only view of someone else's profile otherwise. Reached from the Main Hub's
-account icon (own profile) and from tapping any post/comment author's name (their profile).
-Friends/connections between residents were considered and intentionally skipped — this is
-just profile editing plus "who is this person," not a social graph.
+(editable: name, avatar via a photo picker, phone, address, email) when `userId` matches the
+signed-in user, or a read-only view of someone else's profile otherwise. Reached from the Main
+Hub's account icon (own profile), from tapping any post/comment author's name, and from
+`MembersScreen` (route `members`, reachable via a People icon on Community Feed) — a directory
+listing every account so residents can see who else is in the community.
+
+Friends/connections, private messaging, and group chat were asked about and intentionally not
+built: a friends system needs a request/accept table and UI; 1:1 messaging needs a
+conversations+messages schema and a chat UI; group chat needs that plus a membership table on
+top. All three are meaningfully larger than anything else in this app so far (comparable to
+building a small chat app) and were deferred rather than attempted partially.
 
 Manage Contacts (EmergencyContacts) and Manage Guides (SafetyGuides) don't have Admin screens
 yet — they weren't in the original `yay.pdf` wireframes and are still just the seeded data.
