@@ -158,6 +158,14 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
 
                 if (isOwnProfile) {
                     OutlinedTextField(
+                        value = currentUser.id,
+                        onValueChange = {},
+                        label = { Text("User ID") },
+                        singleLine = true,
+                        enabled = false,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
                         value = name,
                         onValueChange = { name = it; errorMessage = null },
                         label = { Text("Name") },
@@ -185,6 +193,11 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                         modifier = Modifier.fillMaxWidth()
                     )
                 } else {
+                    Text(
+                        "ID: ${currentUser.id}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Text(currentUser.name, style = MaterialTheme.typography.headlineSmall)
                     if (currentUser.phone.isNotBlank()) {
                         Text(
@@ -208,11 +221,6 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                         )
                     }
                 }
-                Text(
-                    "ID: ${currentUser.id}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
 
                 if (isOwnProfile) {
                     errorMessage?.let {
