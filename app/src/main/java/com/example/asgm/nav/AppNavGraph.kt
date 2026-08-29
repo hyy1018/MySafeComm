@@ -37,7 +37,6 @@ import com.example.asgm.screen.ProfileScreen
 import com.example.asgm.screen.ReportDetailScreen
 import com.example.asgm.screen.ReportHazardScreen
 import com.example.asgm.screen.SafetyGuideDetailScreen
-import com.example.asgm.screen.SafetyGuideScreen
 import com.example.asgm.screen.SearchScreen
 import com.example.asgm.screen.SignUpScreen
 
@@ -90,7 +89,6 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         }
         composable("alert") { AlertScreen(navController) }
         composable("sos") { EmergencyHubScreen(navController) }
-        composable("guide") { SafetyGuideScreen(navController) }
         composable(
             route = "guide_detail/{guideId}",
             arguments = listOf(navArgument("guideId") { type = NavType.LongType })

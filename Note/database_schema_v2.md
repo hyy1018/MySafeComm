@@ -10,7 +10,7 @@ Source: `Note/yay.pdf` (original outline) + Community Feed addon module (this up
 | Reports | ReportID, UserID, Title, Location, Description, Status, Photo | Hazard submissions and tracking |
 | Alerts | AlertID, Title, Body, Priority, Location, IssuedBy, Timestamp | Community notices, formatted as formal official notices (Location + IssuedBy + Timestamp-as-date) |
 | AlertAcknowledgements | AlertID, UserID, Timestamp | Per-user "Confirm Acknowledgment" on urgent alerts (composite PK, mirrors Likes); also backs a red badge on the bottom nav's Alert tab (`AlertDao.getUnacknowledgedUrgentCount`) when one exists |
-| EmergencyContacts | ServiceID, Name, PhoneNo, CategoryEmergency, IsSpecialized | Single-tap directory for Emergency Hub (IsSpecialized splits the primary grid from the "Specialized Services" list) |
+| EmergencyContacts | ServiceID, Name, PhoneNo, CategoryEmergency | Single-tap directory for SOS -- just the 5 primary numbers, the separate "Specialized Services" list (IsSpecialized) was cut |
 | SafetyGuides | GuideID, CategorySafety, Steps | Procedural content for Safety Guide library (Steps: one step per line, each formatted `Title||Description`) |
 
 ## New Tables — Community Feed Addon Module
@@ -33,21 +33,29 @@ Reddit/Facebook-style feed: users upload posts, comment, and like; admin can edi
 
 ## Navigation Update
 
-Community Feed becomes its own top-level entry in the **Main Hub**, at the same level as Report, Alerts, Emergency Hub (SOS), and Safety Guide — not merged into any existing page.
+Main Hub has four top-level entries: Report, Alert, Community Feed, and SOS.
 
 ```
 Main Hub
 ├── Report
 ├── Alert
-├── SOS (Emergency Hub)
-├── Guide
-└── Community Feed   ← NEW
-      ├── Post List (view/upload posts)
-      ├── Post Detail (comments, like button)
-      └── Admin: Edit Post
+├── Community Feed
+│     ├── Post List (view/upload posts)
+│     ├── Post Detail (comments, like button)
+│     └── Admin: Edit Post
+└── SOS
+      ├── Emergency Contacts (5 numbers, single-tap call)
+      └── Safety Guides (Fire/Flood/Power Outage/Earthquake -> step detail)
 ```
 
 Admin flow gains: **Manage Posts** (edit post content), alongside existing Manage Reports / Manage Alerts.
+
+Safety Guide used to be its own fifth Main Hub entry (`SafetyGuideScreen`, route `guide`). It's
+now folded into SOS (`EmergencyHubScreen`) as a second section below the contacts grid, in the
+same `LazyVerticalGrid` with a "Safety Guides" header row between the two -- one continuous page
+rather than tabs, so it doesn't read as two features stitched together. `guide_detail/{guideId}`
+is unchanged. The bottom nav and Main Hub both dropped their separate Guide entry as a result
+(bottom nav is back to 5 tabs).
 
 ## Login
 

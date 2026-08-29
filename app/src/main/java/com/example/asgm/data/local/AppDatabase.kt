@@ -37,7 +37,7 @@ import com.example.asgm.data.local.entity.UserEntity
         CommentEntity::class,
         LikeEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -157,31 +157,25 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
 
-                    // Sample directory so the Emergency Hub grid isn't empty before an Admin
-                    // "Manage Contacts" screen exists.
+                    // Sample directory so the SOS grid isn't empty before an Admin "Manage
+                    // Contacts" screen exists. Just the 5 primary numbers -- no separate
+                    // "Specialized Services" list.
                     private fun seedEmergencyContacts(db: SupportSQLiteDatabase) {
                         if (rowCount(db, "emergency_contacts") > 0) return
-                        data class Contact(
-                            val name: String,
-                            val phone: String,
-                            val description: String,
-                            val specialized: Boolean
-                        )
+                        data class Contact(val name: String, val phone: String, val description: String)
                         val contacts = listOf(
                             // The four 99x emergency numbers fill the grid's first 2 rows...
-                            Contact("General Emergency", "999", "Police and ambulance", false),
-                            Contact("Scam Response", "997", "Report suspected scams", false),
-                            Contact("Civil Defence (APM)", "991", "Floods, trees, snakes", false),
-                            Contact("Fire and Rescue", "994", "Fire emergencies", false),
+                            Contact("General Emergency", "999", "Police and ambulance"),
+                            Contact("Scam Response", "997", "Report suspected scams"),
+                            Contact("Civil Defence (APM)", "991", "Floods, trees, snakes"),
+                            Contact("Fire and Rescue", "994", "Fire emergencies"),
                             // ...and Security, being the odd one out, gets centered on its own row.
-                            Contact("Neighborhood Security", "012-345-6789", "Direct line to community patrol", false),
-                            Contact("Private Surgery", "03-1234-5678", "On-call urgent care center", true),
-                            Contact("Mental Health Hotline", "03-8765-4321", "24/7 crisis support", true)
+                            Contact("Neighborhood Security", "012-345-6789", "Direct line to community patrol")
                         )
                         contacts.forEach { c ->
                             db.execSQL(
-                                "INSERT INTO emergency_contacts (name, phoneNo, categoryEmergency, isSpecialized) VALUES " +
-                                    "('${c.name}', '${c.phone}', '${c.description}', ${if (c.specialized) 1 else 0})"
+                                "INSERT INTO emergency_contacts (name, phoneNo, categoryEmergency) VALUES " +
+                                    "('${c.name}', '${c.phone}', '${c.description}')"
                             )
                         }
                     }

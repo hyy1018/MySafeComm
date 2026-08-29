@@ -9,7 +9,5 @@ data class EmergencyContactEntity(
     val name: String,
     val phoneNo: String,
     /** Short description shown under the name, e.g. "Floods, trees, snakes". */
-    val categoryEmergency: String,
-    /** false = shown in the single-tap grid; true = shown under "Specialized Services". */
-    val isSpecialized: Boolean = false
+    val categoryEmergency: String
 )
