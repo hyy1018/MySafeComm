@@ -25,9 +25,11 @@ import com.example.asgm.screen.AdminReportsScreen
 import com.example.asgm.screen.AdminUsersScreen
 import com.example.asgm.screen.AlertScreen
 import com.example.asgm.screen.CommunityFeedScreen
+import com.example.asgm.screen.CompleteProfileScreen
 import com.example.asgm.screen.EmergencyHubScreen
 import com.example.asgm.screen.LoginScreen
 import com.example.asgm.screen.MainHubScreen
+import com.example.asgm.screen.MembersScreen
 import com.example.asgm.screen.MyReportsScreen
 import com.example.asgm.screen.NewPostScreen
 import com.example.asgm.screen.PostDetailScreen
@@ -69,6 +71,7 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
     ) {
         composable("login") { LoginScreen(navController) }
         composable("signup") { SignUpScreen(navController) }
+        composable("complete_profile") { CompleteProfileScreen(navController) }
         composable("main_hub") {
             MainHubScreen(
                 navController = navController,
@@ -96,6 +99,7 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
             SafetyGuideDetailScreen(guideId = guideId, navController = navController)
         }
         composable("community") { CommunityFeedScreen(navController) }
+        composable("members") { MembersScreen(navController) }
         composable("community_new") { NewPostScreen(navController) }
         composable(
             route = "community_post/{postId}",

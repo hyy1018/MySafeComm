@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.asgm.data.PasswordRules
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.UserEntity
@@ -38,9 +39,10 @@ import com.example.asgm.data.local.entity.UserRole
 import kotlinx.coroutines.launch
 
 /**
- * Self-service account creation. Only creates RESIDENT accounts -- there is no self-serve way
- * to become an Admin. Name/contact aren't collected (out of scope for now); they default to
- * the chosen ID and an empty string.
+ * Self-service account creation: just the ID and password to sign in with. Only creates
+ * RESIDENT accounts -- there is no self-serve way to become an Admin. On success, hands off to
+ * CompleteProfileScreen instead of going straight to Main Hub -- name/phone/address/email are
+ * collected there.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,6 +96,11 @@ fun SignUpScreen(navController: NavHostController) {
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
+            Text(
+                PasswordRules.REQUIREMENT_MESSAGE,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             errorMessage?.let {
                 Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
@@ -107,6 +114,10 @@ fun SignUpScreen(navController: NavHostController) {
                         errorMessage = "Enter an ID and password"
                         return@Button
                     }
+                    if (!PasswordRules.isValid(password)) {
+                        errorMessage = PasswordRules.REQUIREMENT_MESSAGE
+                        return@Button
+                    }
                     isSubmitting = true
                     scope.launch {
                         val existing = userDao.getById(id)
@@ -118,14 +129,13 @@ fun SignUpScreen(navController: NavHostController) {
                                 id = id,
                                 password = password,
                                 name = id,
-                                role = UserRole.RESIDENT,
-                                contact = ""
+                                role = UserRole.RESIDENT
                             )
                             userDao.insert(newUser)
                             UserSession.login(newUser)
                             isSubmitting = false
-                            navController.navigate("main_hub") {
-                                popUpTo("login") { inclusive = true }
+                            navController.navigate("complete_profile") {
+                                popUpTo("signup") { inclusive = true }
                             }
                         }
                     }

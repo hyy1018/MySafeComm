@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.asgm.data.PasswordRules
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.UserEntity
 import com.example.asgm.data.local.entity.UserRole
@@ -103,6 +104,11 @@ fun AdminAddAdminScreen(navController: NavHostController) {
                         message = "Fill in name, ID and password"
                         return@Button
                     }
+                    if (!PasswordRules.isValid(password)) {
+                        isError = true
+                        message = PasswordRules.REQUIREMENT_MESSAGE
+                        return@Button
+                    }
                     scope.launch {
                         val existing = userDao.getById(trimmedId)
                         if (existing != null) {
@@ -114,8 +120,7 @@ fun AdminAddAdminScreen(navController: NavHostController) {
                                     id = trimmedId,
                                     password = password,
                                     name = trimmedName,
-                                    role = UserRole.ADMIN,
-                                    contact = ""
+                                    role = UserRole.ADMIN
                                 )
                             )
                             isError = false

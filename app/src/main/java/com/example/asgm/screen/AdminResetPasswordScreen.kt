@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.asgm.data.PasswordRules
 import com.example.asgm.data.local.AppDatabase
 import kotlinx.coroutines.launch
 
@@ -90,6 +91,11 @@ fun AdminResetPasswordScreen(navController: NavHostController) {
                     if (trimmedId.isEmpty() || newPassword.isEmpty()) {
                         isError = true
                         message = "Enter a user ID and new password"
+                        return@Button
+                    }
+                    if (!PasswordRules.isValid(newPassword)) {
+                        isError = true
+                        message = PasswordRules.REQUIREMENT_MESSAGE
                         return@Button
                     }
                     scope.launch {

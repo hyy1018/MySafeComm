@@ -1,6 +1,7 @@
 package com.example.asgm.screen
 
 import android.net.Uri
+import android.util.Patterns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -49,9 +50,9 @@ import com.example.asgm.data.local.AppDatabase
 import kotlinx.coroutines.launch
 
 /**
- * One screen for both cases: viewing your own profile (editable: name, avatar, address) and
- * viewing another resident's profile (read-only). Friends/connections were considered but
- * skipped for scope -- this is just "who is this person" + self-service profile editing.
+ * One screen for both cases: viewing your own profile (editable: avatar, name, phone, address,
+ * email) and viewing another resident's profile (read-only). Friends/connections were considered
+ * but skipped for scope -- this is just "who is this person" + self-service profile editing.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,15 +64,20 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
     val isOwnProfile = userId == UserSession.currentUserId
 
     var name by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var avatarUri by remember { mutableStateOf<Uri?>(null) }
     var loadedFields by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(user) {
         if (!loadedFields) {
             user?.let {
                 name = it.name
-                address = it.contact
+                phone = it.phone
+                address = it.address
+                email = it.email
                 avatarUri = it.avatarUri?.let(Uri::parse)
                 loadedFields = true
             }
@@ -153,22 +159,50 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                 if (isOwnProfile) {
                     OutlinedTextField(
                         value = name,
-                        onValueChange = { name = it },
+                        onValueChange = { name = it; errorMessage = null },
                         label = { Text("Name") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
+                        value = phone,
+                        onValueChange = { phone = it; errorMessage = null },
+                        label = { Text("Phone Number") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
                         value = address,
-                        onValueChange = { address = it },
+                        onValueChange = { address = it; errorMessage = null },
                         label = { Text("Address") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it; errorMessage = null },
+                        label = { Text("Email") },
+                        singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                 } else {
                     Text(currentUser.name, style = MaterialTheme.typography.headlineSmall)
-                    if (currentUser.contact.isNotBlank()) {
+                    if (currentUser.phone.isNotBlank()) {
                         Text(
-                            currentUser.contact,
+                            currentUser.phone,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    if (currentUser.address.isNotBlank()) {
+                        Text(
+                            currentUser.address,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    if (currentUser.email.isNotBlank()) {
+                        Text(
+                            currentUser.email,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -181,12 +215,22 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                 )
 
                 if (isOwnProfile) {
+                    errorMessage?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
                     Button(
                         onClick = {
+                            val trimmedEmail = email.trim()
+                            if (trimmedEmail.isNotEmpty() && !Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
+                                errorMessage = "Enter a valid email address"
+                                return@Button
+                            }
                             scope.launch {
                                 val updated = currentUser.copy(
                                     name = name.trim().ifBlank { currentUser.name },
-                                    contact = address.trim(),
+                                    phone = phone.trim(),
+                                    address = address.trim(),
+                                    email = trimmedEmail,
                                     avatarUri = avatarUri?.toString()
                                 )
                                 userDao.update(updated)

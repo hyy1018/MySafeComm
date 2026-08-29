@@ -13,7 +13,8 @@ data class UserEntity(
     val password: String,
     val name: String,
     val role: UserRole,
-    /** Address / contact info shown on the user's profile. */
-    val contact: String,
+    val phone: String = "",
+    val address: String = "",
+    val email: String = "",
     val avatarUri: String? = null
 )

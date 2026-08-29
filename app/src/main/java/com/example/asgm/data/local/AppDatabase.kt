@@ -37,7 +37,7 @@ import com.example.asgm.data.local.entity.UserEntity
         CommentEntity::class,
         LikeEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -92,46 +92,63 @@ abstract class AppDatabase : RoomDatabase() {
                     // access" flow exists: resident1/demo1234 (User tab) and admin1/admin1234 (Admin tab).
                     private fun seedTestAccounts(db: SupportSQLiteDatabase) {
                         db.execSQL(
-                            "INSERT OR IGNORE INTO users (id, password, name, role, contact) VALUES " +
-                                "('resident1', 'demo1234', 'Demo Resident', 'RESIDENT', '0000000000')"
+                            "INSERT OR IGNORE INTO users (id, password, name, role, phone, email) VALUES " +
+                                "('resident1', 'demo1234', 'Demo Resident', 'RESIDENT', '0000000000', 'resident1@example.com')"
                         )
                         db.execSQL(
-                            "INSERT OR IGNORE INTO users (id, password, name, role, contact) VALUES " +
-                                "('admin1', 'admin1234', 'Demo Admin', 'ADMIN', '0000000000')"
+                            "INSERT OR IGNORE INTO users (id, password, name, role, phone, email) VALUES " +
+                                "('admin1', 'admin1234', 'Demo Admin', 'ADMIN', '0000000000', 'admin1@example.com')"
                         )
                     }
 
                     // Sample community notices so the Live Alerts feed isn't empty before an
-                    // Admin "Add Alert" screen exists.
+                    // Admin "Add Alert" screen exists. Formatted as formal official notices:
+                    // date (timestamp), location, and issuing office.
                     private fun seedAlerts(db: SupportSQLiteDatabase) {
                         if (rowCount(db, "alerts") > 0) return
                         val now = System.currentTimeMillis()
+                        data class Notice(
+                            val title: String,
+                            val body: String,
+                            val priority: String,
+                            val location: String,
+                            val issuedBy: String
+                        )
                         val alerts = listOf(
-                            Triple(
+                            Notice(
                                 "Water Main Maintenance",
-                                "Oakwood Sector - Blocks A-G, 14:00 - 18:00 (Today). Category: Infrastructure Maintenance.",
-                                "URGENT"
+                                "Water supply will be interrupted from 14:00 to 18:00 today for scheduled infrastructure maintenance. Residents are advised to store water in advance.",
+                                "URGENT",
+                                "Oakwood Sector, Blocks A-G",
+                                "Facilities Management Office"
                             ),
-                            Triple(
+                            Notice(
                                 "Community Town Hall Meeting",
-                                "Scheduled for Friday at 6:00 PM.",
-                                "INFO"
+                                "All residents are invited to attend the quarterly town hall meeting to discuss community matters and upcoming projects.",
+                                "INFO",
+                                "Community Hall, Ground Floor",
+                                "Community Management Office"
                             ),
-                            Triple(
+                            Notice(
                                 "New Security Patrol Route",
-                                "Enhanced surveillance in Zone 4.",
-                                "INFO"
+                                "Enhanced surveillance and foot patrols have been implemented in Zone 4 following recent resident feedback.",
+                                "INFO",
+                                "Zone 4",
+                                "Neighborhood Security Team"
                             ),
-                            Triple(
+                            Notice(
                                 "Park Cleaning Drive",
-                                "Volunteers needed this weekend.",
-                                "INFO"
+                                "Volunteers are needed for the community park cleaning drive this weekend. Gloves and equipment will be provided.",
+                                "INFO",
+                                "Central Community Park",
+                                "Community Management Office"
                             )
                         )
-                        alerts.forEachIndexed { index, (title, body, priority) ->
+                        alerts.forEachIndexed { index, notice ->
                             db.execSQL(
-                                "INSERT INTO alerts (title, body, priority, timestamp) VALUES " +
-                                    "('$title', '$body', '$priority', ${now - index * 1000})"
+                                "INSERT INTO alerts (title, body, priority, location, issuedBy, timestamp) VALUES " +
+                                    "('${notice.title}', '${notice.body}', '${notice.priority}', " +
+                                    "'${notice.location}', '${notice.issuedBy}', ${now - index * 1000})"
                             )
                         }
                     }
