@@ -91,13 +91,17 @@ abstract class AppDatabase : RoomDatabase() {
                     // Only two test accounts to sign in with on the Login screen:
                     // test1/abc123456 (User tab) and admin1/abc123456 (Admin tab).
                     private fun seedTestAccounts(db: SupportSQLiteDatabase) {
+                        // address is NOT NULL with no SQL-level default (Kotlin default values
+                        // aren't reflected in the generated schema) -- omitting it here previously
+                        // made INSERT OR IGNORE silently drop the row instead of throwing, since
+                        // IGNORE suppresses NOT NULL violations too, not just PK/UNIQUE ones.
                         db.execSQL(
-                            "INSERT OR IGNORE INTO users (id, password, name, role, phone, email) VALUES " +
-                                "('test1', 'abc123456', 'Test User', 'RESIDENT', '0000000000', 'test1@example.com')"
+                            "INSERT OR IGNORE INTO users (id, password, name, role, phone, address, email) VALUES " +
+                                "('test1', 'abc123456', 'Test User', 'RESIDENT', '0000000000', '', 'test1@example.com')"
                         )
                         db.execSQL(
-                            "INSERT OR IGNORE INTO users (id, password, name, role, phone, email) VALUES " +
-                                "('admin1', 'abc123456', 'Demo Admin', 'ADMIN', '0000000000', 'admin1@example.com')"
+                            "INSERT OR IGNORE INTO users (id, password, name, role, phone, address, email) VALUES " +
+                                "('admin1', 'abc123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com')"
                         )
                     }
 

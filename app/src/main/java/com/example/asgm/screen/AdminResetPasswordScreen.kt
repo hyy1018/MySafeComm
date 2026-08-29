@@ -24,7 +24,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.asgm.data.PasswordRules
@@ -70,12 +69,10 @@ fun AdminResetPasswordScreen(navController: NavHostController) {
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-            OutlinedTextField(
+            PasswordField(
                 value = newPassword,
                 onValueChange = { newPassword = it; message = null },
-                label = { Text("New Password") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
+                label = "New Password",
                 modifier = Modifier.fillMaxWidth()
             )
             message?.let {
