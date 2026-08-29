@@ -90,19 +90,35 @@ abstract class AppDatabase : RoomDatabase() {
 
                     // Only two test accounts to sign in with on the Login screen:
                     // test1/abc123456 (User tab) and admin1/abc123456 (Admin tab).
+                    //
+                    // IMPORTANT: every column below is NOT NULL with no SQL-level default (Kotlin
+                    // default parameter values on UserEntity are NOT reflected in the generated
+                    // schema -- they only apply when you construct the object in Kotlin code).
+                    // INSERT OR IGNORE silently DROPS a row that violates NOT NULL, the same as a
+                    // PK/UNIQUE conflict -- no exception, no crash, it just quietly never inserts.
+                    // This has already caused two "seed accounts can't log in" bugs (missing
+                    // address, then missing lastSeenActivityAt): whenever a NOT NULL column is
+                    // added to UserEntity, it MUST be added to seedUser()'s column list too, or
+                    // every seeded account silently stops being created.
+                    private fun seedUser(
+                        db: SupportSQLiteDatabase,
+                        id: String,
+                        password: String,
+                        name: String,
+                        role: String,
+                        phone: String = "",
+                        email: String = ""
+                    ) {
+                        db.execSQL(
+                            "INSERT OR IGNORE INTO users " +
+                                "(id, password, name, role, phone, address, email, lastSeenActivityAt) VALUES " +
+                                "('$id', '$password', '$name', '$role', '$phone', '', '$email', 0)"
+                        )
+                    }
+
                     private fun seedTestAccounts(db: SupportSQLiteDatabase) {
-                        // address is NOT NULL with no SQL-level default (Kotlin default values
-                        // aren't reflected in the generated schema) -- omitting it here previously
-                        // made INSERT OR IGNORE silently drop the row instead of throwing, since
-                        // IGNORE suppresses NOT NULL violations too, not just PK/UNIQUE ones.
-                        db.execSQL(
-                            "INSERT OR IGNORE INTO users (id, password, name, role, phone, address, email) VALUES " +
-                                "('test1', 'abc123456', 'Test User', 'RESIDENT', '0000000000', '', 'test1@example.com')"
-                        )
-                        db.execSQL(
-                            "INSERT OR IGNORE INTO users (id, password, name, role, phone, address, email) VALUES " +
-                                "('admin1', 'abc123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com')"
-                        )
+                        seedUser(db, "test1", "abc123456", "Test User", "RESIDENT", "0000000000", "test1@example.com")
+                        seedUser(db, "admin1", "abc123456", "Demo Admin", "ADMIN", "0000000000", "admin1@example.com")
                     }
 
                     // Sample community notices so the Live Alerts feed isn't empty before an
