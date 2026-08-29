@@ -27,4 +27,7 @@ interface UserDao {
 
     @Query("SELECT * FROM users ORDER BY name ASC")
     fun getAll(): Flow<List<UserEntity>>
+
+    @Query("UPDATE users SET lastSeenActivityAt = :timestamp WHERE id = :userId")
+    suspend fun updateLastSeenActivity(userId: String, timestamp: Long)
 }

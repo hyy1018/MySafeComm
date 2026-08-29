@@ -6,7 +6,7 @@ Source: `Note/yay.pdf` (original outline) + Community Feed addon module (this up
 
 | Table | Key Fields | Purpose |
 |---|---|---|
-| Users | Id, Password, Name, Role, Phone, Address, Email, AvatarUri | Resident, Admin, Responder accounts (Phone/Address/Email split into their own columns; were briefly one shared "Contact" field) |
+| Users | Id, Password, Name, Role, Phone, Address, Email, AvatarUri, LastSeenActivityAt | Resident, Admin, Responder accounts (Phone/Address/Email split into their own columns; were briefly one shared "Contact" field). LastSeenActivityAt drives the Community activity badge |
 | Reports | ReportID, UserID, Title, Location, Description, Status, Photo | Hazard submissions and tracking |
 | Alerts | AlertID, Title, Body, Priority, Location, IssuedBy, Timestamp | Community notices, formatted as formal official notices (Location + IssuedBy + Timestamp-as-date) |
 | AlertAcknowledgements | AlertID, UserID, Timestamp | Per-user "Confirm Acknowledgment" on urgent alerts (composite PK, mirrors Likes); also backs a red badge on the bottom nav's Alert tab (`AlertDao.getUnacknowledgedUrgentCount`) when one exists |
@@ -30,6 +30,16 @@ Reddit/Facebook-style feed: users upload posts, comment, and like; admin can edi
 - Users 1—N Comments (author)
 - Users 1—N Likes
 - Users (Role = Admin) 0—N Posts edited (via EditedByAdminID)
+
+### Activity feed (Instagram-style, not a real push notification)
+
+`ActivityScreen` (route `activity`, opened from a heart icon on Community Feed's top bar) lists
+likes and comments made on the signed-in resident's own posts by *other* people -- self-actions
+are excluded via `LikeDao.getLikesOnUserPosts` / `CommentDao.getCommentsOnUserPosts` (both join
+back to Posts and filter `userId != postOwnerId`). No new table: unread state is just
+`Users.LastSeenActivityAt` compared against each like/comment's timestamp
+(`PostDao.getUnseenActivityCount`), and opening the screen stamps it to "now". A red badge
+shows the unseen count on both the heart icon and the bottom nav's Community tab.
 
 ## Navigation Update
 

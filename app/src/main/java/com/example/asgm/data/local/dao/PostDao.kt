@@ -27,4 +27,17 @@ interface PostDao {
 
     @Query("SELECT * FROM posts WHERE postId = :postId LIMIT 1")
     fun getById(postId: Long): Flow<PostEntity?>
+
+    /** Drives the Instagram-style activity badge: likes+comments on this person's own posts
+     * (excluding their own actions) since they last opened the activity feed. */
+    @Query(
+        "SELECT COUNT(*) FROM (" +
+            "SELECT l.timestamp AS ts FROM likes l JOIN posts p ON l.postId = p.postId " +
+            "WHERE p.userId = :postOwnerId AND l.userId != :postOwnerId AND l.timestamp > :since " +
+            "UNION ALL " +
+            "SELECT c.timestamp AS ts FROM comments c JOIN posts p ON c.postId = p.postId " +
+            "WHERE p.userId = :postOwnerId AND c.userId != :postOwnerId AND c.timestamp > :since" +
+            ")"
+    )
+    fun getUnseenActivityCount(postOwnerId: String, since: Long): Flow<Int>
 }

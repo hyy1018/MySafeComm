@@ -49,6 +49,19 @@ fun AppBottomBar(navController: NavHostController) {
         }
     ).collectAsState(initial = 0)
 
+    // Same idea for Community: an Instagram-style badge for unseen likes/comments on your posts.
+    val currentUser by (
+        if (userId != null) AppDatabase.getInstance(context).userDao().observeById(userId) else emptyFlow()
+    ).collectAsState(initial = null)
+    val unseenActivityCount by (
+        if (userId != null) {
+            AppDatabase.getInstance(context).postDao()
+                .getUnseenActivityCount(userId, currentUser?.lastSeenActivityAt ?: 0)
+        } else {
+            emptyFlow()
+        }
+    ).collectAsState(initial = 0)
+
     NavigationBar {
         bottomNavItems.forEach { item ->
             NavigationBarItem(
@@ -78,8 +91,13 @@ fun AppBottomBar(navController: NavHostController) {
                     }
                 },
                 icon = {
-                    if (item.route == "alert" && unacknowledgedUrgentCount > 0) {
-                        BadgedBox(badge = { Badge { Text("$unacknowledgedUrgentCount") } }) {
+                    val badgeCount = when (item.route) {
+                        "alert" -> unacknowledgedUrgentCount
+                        "community" -> unseenActivityCount
+                        else -> 0
+                    }
+                    if (badgeCount > 0) {
+                        BadgedBox(badge = { Badge { Text("$badgeCount") } }) {
                             Icon(item.icon, contentDescription = item.label)
                         }
                     } else {

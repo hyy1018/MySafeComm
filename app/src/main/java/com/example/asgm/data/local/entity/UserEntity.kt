@@ -16,5 +16,7 @@ data class UserEntity(
     val phone: String = "",
     val address: String = "",
     val email: String = "",
-    val avatarUri: String? = null
+    val avatarUri: String? = null,
+    /** When this user last opened the Community activity feed -- drives the unread badge. */
+    val lastSeenActivityAt: Long = 0
 )

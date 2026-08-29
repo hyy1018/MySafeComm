@@ -15,6 +15,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.asgm.data.UserSession
+import com.example.asgm.screen.ActivityScreen
 import com.example.asgm.screen.AdminAddAdminScreen
 import com.example.asgm.screen.AdminAlertFormScreen
 import com.example.asgm.screen.AdminAlertsScreen
@@ -97,6 +98,7 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
             SafetyGuideDetailScreen(guideId = guideId, navController = navController)
         }
         composable("community") { CommunityFeedScreen(navController) }
+        composable("activity") { ActivityScreen(navController) }
         composable("members") { MembersScreen(navController) }
         composable("community_new") { NewPostScreen(navController) }
         composable(

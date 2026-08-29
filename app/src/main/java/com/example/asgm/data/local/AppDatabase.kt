@@ -37,7 +37,7 @@ import com.example.asgm.data.local.entity.UserEntity
         CommentEntity::class,
         LikeEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

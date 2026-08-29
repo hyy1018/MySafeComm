@@ -17,4 +17,11 @@ interface CommentDao {
 
     @Query("SELECT * FROM comments WHERE postId = :postId ORDER BY timestamp ASC")
     fun getByPost(postId: Long): Flow<List<CommentEntity>>
+
+    /** Instagram-style activity feed: comments on this person's own posts, excluding self-comments. */
+    @Query(
+        "SELECT c.* FROM comments c JOIN posts p ON c.postId = p.postId " +
+            "WHERE p.userId = :postOwnerId AND c.userId != :postOwnerId ORDER BY c.timestamp DESC"
+    )
+    fun getCommentsOnUserPosts(postOwnerId: String): Flow<List<CommentEntity>>
 }

@@ -17,8 +17,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -38,8 +41,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.PostEntity
+import kotlinx.coroutines.flow.emptyFlow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,8 +54,21 @@ import java.util.Locale
 @Composable
 fun CommunityFeedScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val postDao = remember { AppDatabase.getInstance(context).postDao() }
+    val db = remember { AppDatabase.getInstance(context) }
+    val postDao = db.postDao()
     val posts by postDao.getAll().collectAsState(initial = emptyList())
+
+    val userId = UserSession.currentUserId
+    val currentUser by (
+        if (userId != null) db.userDao().observeById(userId) else emptyFlow()
+    ).collectAsState(initial = null)
+    val unseenActivityCount by (
+        if (userId != null) {
+            postDao.getUnseenActivityCount(userId, currentUser?.lastSeenActivityAt ?: 0)
+        } else {
+            emptyFlow()
+        }
+    ).collectAsState(initial = 0)
 
     Scaffold(
         topBar = {
@@ -62,6 +80,15 @@ fun CommunityFeedScreen(navController: NavHostController) {
                     }
                 },
                 actions = {
+                    IconButton(onClick = { navController.navigate("activity") }) {
+                        if (unseenActivityCount > 0) {
+                            BadgedBox(badge = { Badge { Text("$unseenActivityCount") } }) {
+                                Icon(Icons.Filled.Favorite, contentDescription = "Activity")
+                            }
+                        } else {
+                            Icon(Icons.Filled.FavoriteBorder, contentDescription = "Activity")
+                        }
+                    }
                     IconButton(onClick = { navController.navigate("members") }) {
                         Icon(Icons.Filled.People, contentDescription = "Community Members")
                     }
