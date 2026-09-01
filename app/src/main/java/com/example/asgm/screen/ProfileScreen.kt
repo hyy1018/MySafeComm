@@ -257,6 +257,12 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                         Text("Change Password")
                     }
                     OutlinedButton(
+                        onClick = { navController.navigate("messages_inbox/${currentUser.id}") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("My Messages")
+                    }
+                    OutlinedButton(
                         onClick = {
                             UserSession.logout()
                             navController.navigate("login") {

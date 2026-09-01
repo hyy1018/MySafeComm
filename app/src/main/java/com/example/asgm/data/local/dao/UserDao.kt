@@ -30,4 +30,7 @@ interface UserDao {
 
     @Query("UPDATE users SET lastSeenActivityAt = :timestamp WHERE id = :userId")
     suspend fun updateLastSeenActivity(userId: String, timestamp: Long)
+
+    @Query("UPDATE users SET lastSeenMessagesAt = :timestamp WHERE id = :userId")
+    suspend fun updateLastSeenMessages(userId: String, timestamp: Long)
 }

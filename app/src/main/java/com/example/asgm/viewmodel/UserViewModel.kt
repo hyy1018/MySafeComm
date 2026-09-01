@@ -53,6 +53,21 @@ class UserViewModel(private val dao: UserDao) : ViewModel() {
             }
         }
     }
+
+    suspend fun updateLastSeenMessages(userId: String, timestamp: Long) {
+        dao.updateLastSeenMessages(userId, timestamp)
+        if (isSupabaseConfigured) {
+            try {
+                supabase.from("users").update({
+                    set("lastSeenMessagesAt", timestamp)
+                }) {
+                    filter { eq("id", userId) }
+                }
+            } catch (e: Exception) {
+                // Cloud copy failed -- local Room copy already saved.
+            }
+        }
+    }
 }
 
 class UserViewModelFactory(private val dao: UserDao) : ViewModelProvider.Factory {
@@ -116,6 +131,7 @@ private suspend fun pushUpdateToCloud(user: UserEntity) {
                 set("email", user.email)
                 set("avatarUri", user.avatarUri)
                 set("lastSeenActivityAt", user.lastSeenActivityAt)
+                set("lastSeenMessagesAt", user.lastSeenMessagesAt)
             }) {
                 filter { eq("id", user.id) }
             }

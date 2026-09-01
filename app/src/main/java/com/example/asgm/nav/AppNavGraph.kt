@@ -24,9 +24,9 @@ import com.example.asgm.screen.AdminResetPasswordScreen
 import com.example.asgm.screen.AdminPostsScreen
 import com.example.asgm.screen.AdminReportsScreen
 import com.example.asgm.screen.AdminUsersScreen
-import com.example.asgm.screen.AdminMessagesScreen
 import com.example.asgm.screen.AlertScreen
 import com.example.asgm.screen.ChangePasswordScreen
+import com.example.asgm.screen.CheckMessagesScreen
 import com.example.asgm.screen.CommunityFeedScreen
 import com.example.asgm.screen.CompleteProfileScreen
 import com.example.asgm.screen.ContactAdminScreen
@@ -35,6 +35,7 @@ import com.example.asgm.screen.LoginScreen
 import com.example.asgm.screen.MainHubScreen
 import com.example.asgm.screen.MembersScreen
 import com.example.asgm.screen.MessageThreadScreen
+import com.example.asgm.screen.MessagesInboxScreen
 import com.example.asgm.screen.MyReportsScreen
 import com.example.asgm.screen.NewPostScreen
 import com.example.asgm.screen.PostDetailScreen
@@ -45,7 +46,10 @@ import com.example.asgm.screen.SafetyGuideDetailScreen
 import com.example.asgm.screen.SearchScreen
 import com.example.asgm.screen.SignUpScreen
 
-private val publicRoutes = setOf("login", "signup", "contact_admin")
+private val publicRoutes = setOf(
+    "login", "signup", "contact_admin", "check_messages",
+    "messages_inbox/{userId}", "message_thread/{myUserId}/{otherUserId}"
+)
 
 @Composable
 fun AppNavGraph(navController: NavHostController = rememberNavController()) {
@@ -76,6 +80,14 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         composable("login") { LoginScreen(navController) }
         composable("signup") { SignUpScreen(navController) }
         composable("contact_admin") { ContactAdminScreen(navController) }
+        composable("check_messages") { CheckMessagesScreen(navController) }
+        composable(
+            route = "messages_inbox/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
+            MessagesInboxScreen(userId = userId, navController = navController)
+        }
         composable("complete_profile") { CompleteProfileScreen(navController) }
         composable("main_hub") {
             MainHubScreen(
@@ -127,13 +139,24 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         composable("admin_users") { AdminUsersScreen(navController) }
         composable("admin_add_admin") { AdminAddAdminScreen(navController) }
         composable("admin_reset_password") { AdminResetPasswordScreen(navController) }
-        composable("admin_messages") { AdminMessagesScreen(navController) }
+        composable("admin_messages") {
+            // Nullable, not requireUserId(): must not throw during a transient no-session
+            // composition (process death restoring the back stack) -- the global guard above
+            // redirects to Login a moment later. See MyReportsScreen for the same reasoning.
+            UserSession.currentUserId?.let { adminId ->
+                MessagesInboxScreen(userId = adminId, navController = navController)
+            }
+        }
         composable(
-            route = "message_thread/{otherUserId}",
-            arguments = listOf(navArgument("otherUserId") { type = NavType.StringType })
+            route = "message_thread/{myUserId}/{otherUserId}",
+            arguments = listOf(
+                navArgument("myUserId") { type = NavType.StringType },
+                navArgument("otherUserId") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
+            val myUserId = backStackEntry.arguments?.getString("myUserId") ?: return@composable
             val otherUserId = backStackEntry.arguments?.getString("otherUserId") ?: return@composable
-            MessageThreadScreen(otherUserId = otherUserId, navController = navController)
+            MessageThreadScreen(myUserId = myUserId, otherUserId = otherUserId, navController = navController)
         }
         composable(
             route = "profile/{userId}",

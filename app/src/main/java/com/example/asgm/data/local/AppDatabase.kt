@@ -40,7 +40,7 @@ import com.example.asgm.data.local.entity.UserEntity
         LikeEntity::class,
         MessageEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -115,8 +115,8 @@ abstract class AppDatabase : RoomDatabase() {
                     ) {
                         db.execSQL(
                             "INSERT OR IGNORE INTO users " +
-                                "(id, password, name, role, phone, address, email, lastSeenActivityAt) VALUES " +
-                                "('$id', '$password', '$name', '$role', '$phone', '', '$email', 0)"
+                                "(id, password, name, role, phone, address, email, lastSeenActivityAt, lastSeenMessagesAt) VALUES " +
+                                "('$id', '$password', '$name', '$role', '$phone', '', '$email', 0, 0)"
                         )
                     }
 

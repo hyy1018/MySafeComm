@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.MessageEntity
 import com.example.asgm.viewmodel.MessageThreadViewModel
@@ -52,16 +51,19 @@ import java.util.Locale
 
 private val messageDateFormat = SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault())
 
-/** Admin screen: one conversation with a resident, plus a reply box. Opened from AdminMessagesScreen. */
+/**
+ * One conversation between [myUserId] and [otherUserId], plus a reply box. Generic, same as
+ * MessagesInboxScreen it's opened from: an Admin replying to a resident, a resident checking an
+ * admin's reply, or two residents chatting directly (started from Community Members).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MessageThreadScreen(otherUserId: String, navController: NavHostController) {
+fun MessageThreadScreen(myUserId: String, otherUserId: String, navController: NavHostController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
-    val adminId = UserSession.requireUserId()
 
     val threadViewModel: MessageThreadViewModel =
-        viewModel(factory = MessageThreadViewModelFactory(db.messageDao(), adminId, otherUserId))
+        viewModel(factory = MessageThreadViewModelFactory(db.messageDao(), myUserId, otherUserId))
     val messageViewModel: MessageViewModel = viewModel(factory = MessageViewModelFactory(db.messageDao()))
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
     val messages by threadViewModel.messages.collectAsState()
@@ -80,7 +82,7 @@ fun MessageThreadScreen(otherUserId: String, navController: NavHostController) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { messageViewModel.refreshFromCloud(adminId) }) {
+                    IconButton(onClick = { messageViewModel.refreshFromCloud(myUserId) }) {
                         Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
                     }
                 }
@@ -101,7 +103,7 @@ fun MessageThreadScreen(otherUserId: String, navController: NavHostController) {
                     onClick = {
                         val text = reply.trim()
                         if (text.isNotEmpty()) {
-                            messageViewModel.send(fromUserId = adminId, toUserId = otherUserId, body = text)
+                            messageViewModel.send(fromUserId = myUserId, toUserId = otherUserId, body = text)
                             reply = ""
                         }
                     }
@@ -125,7 +127,7 @@ fun MessageThreadScreen(otherUserId: String, navController: NavHostController) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(messages, key = { it.messageId }) { message ->
-                    MessageBubble(message = message, isOwn = message.fromUserId == adminId)
+                    MessageBubble(message = message, isOwn = message.fromUserId == myUserId)
                 }
             }
         }

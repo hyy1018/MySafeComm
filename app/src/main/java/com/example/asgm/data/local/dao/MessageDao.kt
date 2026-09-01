@@ -26,10 +26,18 @@ interface MessageDao {
     )
     fun getThread(userA: String, userB: String): Flow<List<MessageEntity>>
 
-    /** Distinct other-party ids this admin has exchanged messages with, for the inbox list. */
+    /** Distinct other-party ids this user has exchanged messages with, for the inbox list. */
     @Query(
-        "SELECT DISTINCT CASE WHEN fromUserId = :adminId THEN toUserId ELSE fromUserId END " +
-            "FROM messages WHERE fromUserId = :adminId OR toUserId = :adminId"
+        "SELECT DISTINCT CASE WHEN fromUserId = :userId THEN toUserId ELSE fromUserId END " +
+            "FROM messages WHERE fromUserId = :userId OR toUserId = :userId"
     )
-    fun getConversationPartnerIds(adminId: String): Flow<List<String>>
+    fun getConversationPartnerIds(userId: String): Flow<List<String>>
+
+    /** Drives the Messages unread badge: messages sent TO this user (not by themselves) since
+     * they last opened their inbox -- same shape as PostDao.getUnseenActivityCount. */
+    @Query(
+        "SELECT COUNT(*) FROM messages WHERE toUserId = :userId AND fromUserId != :userId " +
+            "AND timestamp > :since"
+    )
+    fun getUnseenMessageCount(userId: String, since: Long): Flow<Int>
 }

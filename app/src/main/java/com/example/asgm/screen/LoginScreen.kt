@@ -162,6 +162,9 @@ fun LoginScreen(navController: NavHostController) {
                         modifier = Modifier.fillMaxWidth()
                     )
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = { navController.navigate("check_messages") }) {
+                            Text("Check Messages")
+                        }
                         TextButton(onClick = { navController.navigate("contact_admin") }) {
                             Text("Forgot?")
                         }

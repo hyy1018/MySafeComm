@@ -84,20 +84,24 @@ class MessageThreadViewModelFactory(
     }
 }
 
-/** Backs AdminMessagesScreen's inbox list: who has messaged this admin. */
-class AdminInboxViewModel(dao: MessageDao, adminId: String) : ViewModel() {
-    val partnerIds: StateFlow<List<String>> = dao.getConversationPartnerIds(adminId)
+/**
+ * Backs MessagesInboxScreen's list: who this person has exchanged messages with. Generic --
+ * used by an Admin checking messages from residents AND a resident checking their own messages
+ * (replies from an admin, or a direct chat with another resident via Community Members).
+ */
+class MessagesInboxViewModel(dao: MessageDao, userId: String) : ViewModel() {
+    val partnerIds: StateFlow<List<String>> = dao.getConversationPartnerIds(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 }
 
-class AdminInboxViewModelFactory(
+class MessagesInboxViewModelFactory(
     private val dao: MessageDao,
-    private val adminId: String
+    private val userId: String
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(AdminInboxViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(MessagesInboxViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AdminInboxViewModel(dao, adminId) as T
+            return MessagesInboxViewModel(dao, userId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

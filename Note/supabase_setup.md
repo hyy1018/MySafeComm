@@ -40,7 +40,8 @@ create table if not exists users (
   address text not null default '',
   email text not null default '',
   "avatarUri" text,
-  "lastSeenActivityAt" bigint not null default 0
+  "lastSeenActivityAt" bigint not null default 0,
+  "lastSeenMessagesAt" bigint not null default 0
 );
 
 create table if not exists alerts (
@@ -116,6 +117,10 @@ create table if not exists messages (
   body text not null,
   timestamp bigint not null
 );
+
+-- Columns added to an EXISTING table need their own statement -- "create table if not exists"
+-- only skips table creation, it won't add a missing column to a users table you already made.
+alter table users add column if not exists "lastSeenMessagesAt" bigint not null default 0;
 
 alter table users disable row level security;
 alter table alerts disable row level security;
