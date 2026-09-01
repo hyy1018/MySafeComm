@@ -31,12 +31,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportEntity
 import com.example.asgm.data.local.entity.ReportStatus
-import kotlinx.coroutines.flow.emptyFlow
+import com.example.asgm.viewmodel.MyReportsViewModel
+import com.example.asgm.viewmodel.MyReportsViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -46,11 +48,18 @@ import java.util.Locale
 @Composable
 fun MyReportsScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val reportDao = remember { AppDatabase.getInstance(context).reportDao() }
+    val db = remember { AppDatabase.getInstance(context) }
+    // Nullable, not requireUserId(): this can compose transiently with no session (process death
+    // restoring the back stack before UserSession is repopulated), and must not throw here --
+    // the global AppNavGraph guard is what redirects to Login in that case, a moment later.
     val userId = UserSession.currentUserId
-    val reports by (
-        if (userId != null) reportDao.getByUser(userId) else emptyFlow()
-    ).collectAsState(initial = emptyList())
+    val reports: List<ReportEntity> = if (userId != null) {
+        val viewModel: MyReportsViewModel =
+            viewModel(factory = MyReportsViewModelFactory(db.reportDao(), userId))
+        viewModel.reports.collectAsState().value
+    } else {
+        emptyList()
+    }
 
     Scaffold(
         topBar = {

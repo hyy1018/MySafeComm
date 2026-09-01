@@ -42,11 +42,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportEntity
+import com.example.asgm.viewmodel.ReportViewModel
+import com.example.asgm.viewmodel.ReportViewModelFactory
 import kotlinx.coroutines.launch
 
 /** User screen: submit a new hazard report. Admin's report management is a separate screen (later). */
@@ -54,7 +57,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun ReportHazardScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val reportDao = remember { AppDatabase.getInstance(context).reportDao() }
+    val db = remember { AppDatabase.getInstance(context) }
+    val reportViewModel: ReportViewModel = viewModel(factory = ReportViewModelFactory(db.reportDao()))
     val scope = rememberCoroutineScope()
 
     var title by remember { mutableStateOf("") }
@@ -160,7 +164,7 @@ fun ReportHazardScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     scope.launch {
-                        reportDao.insert(
+                        reportViewModel.submit(
                             ReportEntity(
                                 userId = UserSession.requireUserId(),
                                 title = title.trim(),

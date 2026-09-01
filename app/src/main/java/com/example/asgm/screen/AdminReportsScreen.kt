@@ -25,16 +25,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportEntity
 import com.example.asgm.data.local.entity.ReportStatus
-import kotlinx.coroutines.launch
+import com.example.asgm.viewmodel.ReportViewModel
+import com.example.asgm.viewmodel.ReportViewModelFactory
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -47,7 +50,10 @@ private val dateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDe
 fun AdminReportsScreen(navController: NavHostController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
-    val reports by db.reportDao().getAll().collectAsState(initial = emptyList())
+    val reportViewModel: ReportViewModel = viewModel(factory = ReportViewModelFactory(db.reportDao()))
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
+    val reports by reportViewModel.reports.collectAsState()
+    val users by userViewModel.users.collectAsState()
 
     Scaffold(
         topBar = {
@@ -75,7 +81,8 @@ fun AdminReportsScreen(navController: NavHostController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(reports, key = { it.reportId }) { report ->
-                    AdminReportCard(report)
+                    val reporterName = users.find { it.id == report.userId }?.name ?: report.userId
+                    AdminReportCard(report, reporterName, reportViewModel)
                 }
             }
         }
@@ -83,12 +90,7 @@ fun AdminReportsScreen(navController: NavHostController) {
 }
 
 @Composable
-private fun AdminReportCard(report: ReportEntity) {
-    val context = LocalContext.current
-    val db = remember { AppDatabase.getInstance(context) }
-    val scope = rememberCoroutineScope()
-    val reporter by db.userDao().observeById(report.userId).collectAsState(initial = null)
-
+private fun AdminReportCard(report: ReportEntity, reporterName: String, viewModel: ReportViewModel) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -102,7 +104,7 @@ private fun AdminReportCard(report: ReportEntity) {
             )
             Text(report.description, style = MaterialTheme.typography.bodyMedium)
             Text(
-                "Reported by ${reporter?.name ?: report.userId} - ${dateFormat.format(Date(report.timestamp))}",
+                "Reported by $reporterName - ${dateFormat.format(Date(report.timestamp))}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -110,7 +112,7 @@ private fun AdminReportCard(report: ReportEntity) {
                 ReportStatus.entries.forEach { status ->
                     FilterChip(
                         selected = report.status == status,
-                        onClick = { scope.launch { db.reportDao().updateStatus(report.reportId, status) } },
+                        onClick = { viewModel.updateStatus(report.reportId, status) },
                         label = { Text(status.name.replace('_', ' ')) }
                     )
                 }

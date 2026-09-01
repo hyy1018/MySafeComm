@@ -4,11 +4,15 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
+@Serializable
 enum class ReportStatus {
     PENDING, IN_PROGRESS, SOLVED
 }
 
+// @Serializable lets this same class double as the row model for the Supabase "reports" table.
+@Serializable
 @Entity(
     tableName = "reports",
     foreignKeys = [

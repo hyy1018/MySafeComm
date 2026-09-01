@@ -37,7 +37,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,21 +44,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportStatus
-import kotlinx.coroutines.launch
+import com.example.asgm.viewmodel.ReportDetailViewModel
+import com.example.asgm.viewmodel.ReportDetailViewModelFactory
 
 /** User screen: view and edit one of your own hazard reports. Status stays Admin-controlled; edits here just change the report content, and Admin's Manage Reports reflects them immediately (same table, same Flow). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportDetailScreen(reportId: Long, navController: NavHostController) {
     val context = LocalContext.current
-    val reportDao = remember { AppDatabase.getInstance(context).reportDao() }
-    val scope = rememberCoroutineScope()
+    val db = remember { AppDatabase.getInstance(context) }
+    val viewModel: ReportDetailViewModel =
+        viewModel(factory = ReportDetailViewModelFactory(db.reportDao(), reportId))
 
-    val report by reportDao.getById(reportId).collectAsState(initial = null)
+    val report by viewModel.report.collectAsState()
 
     var title by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
@@ -184,17 +186,15 @@ fun ReportDetailScreen(reportId: Long, navController: NavHostController) {
 
                 Button(
                     onClick = {
-                        scope.launch {
-                            reportDao.update(
-                                currentReport.copy(
-                                    title = title.trim(),
-                                    location = location.trim(),
-                                    description = description.trim(),
-                                    photoUri = photoUri?.toString()
-                                )
+                        viewModel.update(
+                            currentReport.copy(
+                                title = title.trim(),
+                                location = location.trim(),
+                                description = description.trim(),
+                                photoUri = photoUri?.toString()
                             )
-                            navController.popBackStack()
-                        }
+                        )
+                        navController.popBackStack()
                     },
                     enabled = title.isNotBlank() && location.isNotBlank() && description.isNotBlank(),
                     modifier = Modifier.fillMaxWidth()
@@ -211,11 +211,9 @@ fun ReportDetailScreen(reportId: Long, navController: NavHostController) {
                 text = { Text("This cannot be undone.") },
                 confirmButton = {
                     TextButton(onClick = {
-                        scope.launch {
-                            reportDao.delete(currentReport)
-                            showDeleteConfirm = false
-                            navController.popBackStack()
-                        }
+                        viewModel.delete(currentReport)
+                        showDeleteConfirm = false
+                        navController.popBackStack()
                     }) { Text("Delete") }
                 },
                 dismissButton = {
