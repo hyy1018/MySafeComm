@@ -24,8 +24,12 @@ Notes on the design choices, so nothing looks accidental:
   (same as Practical 9's own example, which also skips RLS) — a real production app would
   add policies here instead of disabling it.
 
+Safe to run more than once — every `create table` is guarded with `if not exists` and every
+seed `insert` with `on conflict do nothing`, so re-running this after it already succeeded once
+just does nothing instead of erroring.
+
 ```sql
-create table users (
+create table if not exists users (
   id text primary key,
   password text not null,
   name text not null,
@@ -37,7 +41,7 @@ create table users (
   "lastSeenActivityAt" bigint not null default 0
 );
 
-create table alerts (
+create table if not exists alerts (
   "alertId" bigint primary key,
   title text not null,
   body text not null,
@@ -47,27 +51,27 @@ create table alerts (
   timestamp bigint not null
 );
 
-create table alert_acknowledgements (
+create table if not exists alert_acknowledgements (
   "alertId" bigint not null references alerts("alertId") on delete cascade,
   "userId" text not null references users(id) on delete cascade,
   timestamp bigint not null,
   primary key ("alertId", "userId")
 );
 
-create table emergency_contacts (
+create table if not exists emergency_contacts (
   "serviceId" bigint primary key,
   name text not null,
   "phoneNo" text not null,
   "categoryEmergency" text not null
 );
 
-create table safety_guides (
+create table if not exists safety_guides (
   "guideId" bigint primary key,
   "categorySafety" text not null,
   steps text not null
 );
 
-create table reports (
+create table if not exists reports (
   "reportId" bigint primary key,
   "userId" text not null references users(id) on delete cascade,
   title text not null,
@@ -78,7 +82,7 @@ create table reports (
   timestamp bigint not null
 );
 
-create table posts (
+create table if not exists posts (
   "postId" bigint primary key,
   "userId" text not null references users(id) on delete cascade,
   content text not null,
@@ -88,7 +92,7 @@ create table posts (
   "editedByAdminId" text references users(id) on delete set null
 );
 
-create table comments (
+create table if not exists comments (
   "commentId" bigint primary key,
   "postId" bigint not null references posts("postId") on delete cascade,
   "userId" text not null references users(id) on delete cascade,
@@ -96,7 +100,7 @@ create table comments (
   timestamp bigint not null
 );
 
-create table likes (
+create table if not exists likes (
   "postId" bigint not null references posts("postId") on delete cascade,
   "userId" text not null references users(id) on delete cascade,
   timestamp bigint not null,
@@ -116,14 +120,16 @@ alter table likes disable row level security;
 -- Seed the same starting data the local Room DB seeds, so both stores start in sync.
 insert into users (id, password, name, role, phone, address, email) values
   ('test1', 'abc123456', 'Test User', 'RESIDENT', '0000000000', '', 'test1@example.com'),
-  ('admin1', 'abc123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com');
+  ('admin1', 'abc123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com')
+on conflict (id) do nothing;
 
 insert into emergency_contacts ("serviceId", name, "phoneNo", "categoryEmergency") values
   (1, 'General Emergency', '999', 'Police and ambulance'),
   (2, 'Scam Response', '997', 'Report suspected scams'),
   (3, 'Civil Defence (APM)', '991', 'Floods, trees, snakes'),
   (4, 'Fire and Rescue', '994', 'Fire emergencies'),
-  (5, 'Neighborhood Security', '012-345-6789', 'Direct line to community patrol');
+  (5, 'Neighborhood Security', '012-345-6789', 'Direct line to community patrol')
+on conflict ("serviceId") do nothing;
 ```
 
 The 4 alerts and 4 safety guides have long text bodies — skip seeding those from SQL;
