@@ -25,11 +25,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.PasswordRules
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.UserEntity
 import com.example.asgm.data.local.entity.UserRole
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
 /** Admin screen: create another Admin account. */
@@ -37,7 +40,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun AdminAddAdminScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val userDao = remember { AppDatabase.getInstance(context).userDao() }
+    val db = remember { AppDatabase.getInstance(context) }
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
     val scope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
@@ -107,12 +111,12 @@ fun AdminAddAdminScreen(navController: NavHostController) {
                         return@Button
                     }
                     scope.launch {
-                        val existing = userDao.getById(trimmedId)
+                        val existing = userViewModel.getById(trimmedId)
                         if (existing != null) {
                             isError = true
                             message = "That ID is already taken"
                         } else {
-                            userDao.insert(
+                            userViewModel.signUp(
                                 UserEntity(
                                     id = trimmedId,
                                     password = password,

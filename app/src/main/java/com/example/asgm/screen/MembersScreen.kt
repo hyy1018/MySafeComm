@@ -37,10 +37,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.UserEntity
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 
 /**
  * Community directory: everyone's name/avatar, tap to see their profile. Friends, private
@@ -51,8 +54,9 @@ import com.example.asgm.data.local.entity.UserEntity
 @Composable
 fun MembersScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val userDao = remember { AppDatabase.getInstance(context).userDao() }
-    val members by userDao.getAll().collectAsState(initial = emptyList())
+    val db = remember { AppDatabase.getInstance(context) }
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
+    val members by userViewModel.users.collectAsState()
 
     Scaffold(
         topBar = {

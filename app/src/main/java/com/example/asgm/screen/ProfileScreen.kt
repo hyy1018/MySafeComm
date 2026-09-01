@@ -35,7 +35,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,11 +42,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
-import kotlinx.coroutines.launch
+import com.example.asgm.viewmodel.UserDetailViewModel
+import com.example.asgm.viewmodel.UserDetailViewModelFactory
 
 /**
  * One screen for both cases: viewing your own profile (editable: avatar, name, phone, address,
@@ -58,9 +59,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProfileScreen(userId: String, navController: NavHostController) {
     val context = LocalContext.current
-    val userDao = remember { AppDatabase.getInstance(context).userDao() }
-    val scope = rememberCoroutineScope()
-    val user by userDao.observeById(userId).collectAsState(initial = null)
+    val db = remember { AppDatabase.getInstance(context) }
+    val viewModel: UserDetailViewModel =
+        viewModel(factory = UserDetailViewModelFactory(db.userDao(), userId))
+    val user by viewModel.user.collectAsState()
     val isOwnProfile = userId == UserSession.currentUserId
 
     var name by remember { mutableStateOf("") }
@@ -233,17 +235,15 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                                 errorMessage = "Enter a valid email address"
                                 return@Button
                             }
-                            scope.launch {
-                                val updated = currentUser.copy(
-                                    name = name.trim().ifBlank { currentUser.name },
-                                    phone = phone.trim(),
-                                    address = address.trim(),
-                                    email = trimmedEmail,
-                                    avatarUri = avatarUri?.toString()
-                                )
-                                userDao.update(updated)
-                                UserSession.login(updated)
-                            }
+                            val updated = currentUser.copy(
+                                name = name.trim().ifBlank { currentUser.name },
+                                phone = phone.trim(),
+                                address = address.trim(),
+                                email = trimmedEmail,
+                                avatarUri = avatarUri?.toString()
+                            )
+                            viewModel.save(updated)
+                            UserSession.login(updated)
                         },
                         enabled = name.isNotBlank(),
                         modifier = Modifier.fillMaxWidth()

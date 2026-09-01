@@ -38,10 +38,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
 /**
@@ -54,7 +57,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun CompleteProfileScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val userDao = remember { AppDatabase.getInstance(context).userDao() }
+    val db = remember { AppDatabase.getInstance(context) }
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
     val scope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
@@ -164,7 +168,7 @@ fun CompleteProfileScreen(navController: NavHostController) {
                     isSaving = true
                     scope.launch {
                         val currentUserId = UserSession.requireUserId()
-                        val user = userDao.getById(currentUserId)
+                        val user = userViewModel.getById(currentUserId)
                         if (user != null) {
                             val updated = user.copy(
                                 name = trimmedName,
@@ -173,7 +177,7 @@ fun CompleteProfileScreen(navController: NavHostController) {
                                 email = trimmedEmail,
                                 avatarUri = avatarUri?.toString()
                             )
-                            userDao.update(updated)
+                            userViewModel.updateUser(updated)
                             UserSession.login(updated)
                         }
                         isSaving = false

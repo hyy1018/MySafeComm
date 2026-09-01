@@ -25,9 +25,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.PasswordRules
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
 /** Admin screen: set a new password for an existing account. */
@@ -35,7 +38,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun AdminResetPasswordScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val userDao = remember { AppDatabase.getInstance(context).userDao() }
+    val db = remember { AppDatabase.getInstance(context) }
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
     val scope = rememberCoroutineScope()
 
     var id by remember { mutableStateOf("") }
@@ -96,7 +100,7 @@ fun AdminResetPasswordScreen(navController: NavHostController) {
                         return@Button
                     }
                     scope.launch {
-                        val existing = userDao.getById(trimmedId)
+                        val existing = userViewModel.getById(trimmedId)
                         when {
                             existing == null -> {
                                 isError = true
@@ -107,7 +111,7 @@ fun AdminResetPasswordScreen(navController: NavHostController) {
                                 message = "New password can't be the same as the old password"
                             }
                             else -> {
-                                userDao.update(existing.copy(password = newPassword))
+                                userViewModel.updateUser(existing.copy(password = newPassword))
                                 isError = false
                                 message = "Password reset for \"$trimmedId\""
                                 id = ""

@@ -44,10 +44,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.UserRole
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
 private enum class LoginTab { USER, ADMIN }
@@ -57,7 +60,8 @@ private enum class LoginTab { USER, ADMIN }
 @Composable
 fun LoginScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val userDao = remember { AppDatabase.getInstance(context).userDao() }
+    val db = remember { AppDatabase.getInstance(context) }
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -186,7 +190,7 @@ fun LoginScreen(navController: NavHostController) {
                             }
                             isLoggingIn = true
                             scope.launch {
-                                val user = userDao.login(id, password)
+                                val user = userViewModel.login(id, password)
                                 isLoggingIn = false
                                 val tabMatchesRole = (selectedTab == LoginTab.ADMIN) == (user?.role == UserRole.ADMIN)
                                 when {

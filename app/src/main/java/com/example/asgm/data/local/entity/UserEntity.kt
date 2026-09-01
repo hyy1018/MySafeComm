@@ -2,11 +2,15 @@ package com.example.asgm.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
+@Serializable
 enum class UserRole {
     RESIDENT, ADMIN, RESPONDER
 }
 
+// @Serializable lets this same class double as the row model for the Supabase "users" table.
+@Serializable
 @Entity(tableName = "users")
 data class UserEntity(
     @PrimaryKey val id: String,

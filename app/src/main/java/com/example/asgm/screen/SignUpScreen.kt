@@ -29,12 +29,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.PasswordRules
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.UserEntity
 import com.example.asgm.data.local.entity.UserRole
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
 /**
@@ -47,7 +50,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun SignUpScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val userDao = remember { AppDatabase.getInstance(context).userDao() }
+    val db = remember { AppDatabase.getInstance(context) }
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
     val scope = rememberCoroutineScope()
 
     var userId by remember { mutableStateOf("") }
@@ -117,7 +121,7 @@ fun SignUpScreen(navController: NavHostController) {
                     }
                     isSubmitting = true
                     scope.launch {
-                        val existing = userDao.getById(id)
+                        val existing = userViewModel.getById(id)
                         if (existing != null) {
                             errorMessage = "That ID is already taken"
                             isSubmitting = false
@@ -128,7 +132,7 @@ fun SignUpScreen(navController: NavHostController) {
                                 name = id,
                                 role = UserRole.RESIDENT
                             )
-                            userDao.insert(newUser)
+                            userViewModel.signUp(newUser)
                             UserSession.login(newUser)
                             isSubmitting = false
                             navController.navigate("complete_profile") {
