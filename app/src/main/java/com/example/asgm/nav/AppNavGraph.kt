@@ -25,6 +25,7 @@ import com.example.asgm.screen.AdminPostsScreen
 import com.example.asgm.screen.AdminReportsScreen
 import com.example.asgm.screen.AdminUsersScreen
 import com.example.asgm.screen.AlertScreen
+import com.example.asgm.screen.ChangePasswordScreen
 import com.example.asgm.screen.CommunityFeedScreen
 import com.example.asgm.screen.CompleteProfileScreen
 import com.example.asgm.screen.EmergencyHubScreen
@@ -129,5 +130,6 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
             val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
             ProfileScreen(userId = userId, navController = navController)
         }
+        composable("change_password") { ChangePasswordScreen(navController) }
     }
 }

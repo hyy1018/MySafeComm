@@ -251,6 +251,12 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                         Text("Save Changes")
                     }
                     OutlinedButton(
+                        onClick = { navController.navigate("change_password") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Change Password")
+                    }
+                    OutlinedButton(
                         onClick = {
                             UserSession.logout()
                             navController.navigate("login") {

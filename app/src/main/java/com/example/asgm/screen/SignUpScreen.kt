@@ -56,6 +56,7 @@ fun SignUpScreen(navController: NavHostController) {
 
     var userId by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isSubmitting by remember { mutableStateOf(false) }
 
@@ -97,6 +98,12 @@ fun SignUpScreen(navController: NavHostController) {
                 label = "Password",
                 modifier = Modifier.fillMaxWidth()
             )
+            PasswordField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it; errorMessage = null },
+                label = "Confirm Password",
+                modifier = Modifier.fillMaxWidth()
+            )
             Text(
                 PasswordRules.REQUIREMENT_MESSAGE,
                 style = MaterialTheme.typography.labelSmall,
@@ -117,6 +124,10 @@ fun SignUpScreen(navController: NavHostController) {
                     }
                     if (!PasswordRules.isValid(password)) {
                         errorMessage = PasswordRules.REQUIREMENT_MESSAGE
+                        return@Button
+                    }
+                    if (password != confirmPassword) {
+                        errorMessage = "Passwords don't match"
                         return@Button
                     }
                     isSubmitting = true
