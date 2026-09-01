@@ -42,10 +42,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.EmergencyContactEntity
 import com.example.asgm.data.local.entity.SafetyGuideEntity
+import com.example.asgm.viewmodel.EmergencyContactViewModel
+import com.example.asgm.viewmodel.EmergencyContactViewModelFactory
+import com.example.asgm.viewmodel.SafetyGuideViewModel
+import com.example.asgm.viewmodel.SafetyGuideViewModelFactory
 
 /**
  * User screen: SOS -- single-tap emergency contacts plus safety guides in one place, since "who
@@ -58,8 +63,12 @@ import com.example.asgm.data.local.entity.SafetyGuideEntity
 fun EmergencyHubScreen(navController: NavHostController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
-    val contacts by db.emergencyContactDao().getAll().collectAsState(initial = emptyList())
-    val guides by db.safetyGuideDao().getAll().collectAsState(initial = emptyList())
+    val contactViewModel: EmergencyContactViewModel =
+        viewModel(factory = EmergencyContactViewModelFactory(db.emergencyContactDao()))
+    val guideViewModel: SafetyGuideViewModel =
+        viewModel(factory = SafetyGuideViewModelFactory(db.safetyGuideDao()))
+    val contacts by contactViewModel.contacts.collectAsState()
+    val guides by guideViewModel.guides.collectAsState()
 
     Scaffold(
         topBar = {

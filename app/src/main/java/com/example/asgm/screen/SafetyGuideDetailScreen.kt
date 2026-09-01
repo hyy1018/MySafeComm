@@ -34,8 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.viewmodel.SafetyGuideDetailViewModel
+import com.example.asgm.viewmodel.SafetyGuideDetailViewModelFactory
 
 /** User screen: numbered step-by-step procedure for one safety guide category. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +46,9 @@ import com.example.asgm.data.local.AppDatabase
 fun SafetyGuideDetailScreen(guideId: Long, navController: NavHostController) {
     val context = LocalContext.current
     val dao = remember { AppDatabase.getInstance(context).safetyGuideDao() }
-    val guide by dao.getById(guideId).collectAsState(initial = null)
+    val viewModel: SafetyGuideDetailViewModel =
+        viewModel(factory = SafetyGuideDetailViewModelFactory(dao, guideId))
+    val guide by viewModel.guide.collectAsState()
 
     Scaffold(
         topBar = {
