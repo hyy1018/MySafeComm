@@ -3,12 +3,15 @@ package com.example.asgm.data.local.entity
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import kotlinx.serialization.Serializable
 
 /**
  * Records that a specific resident tapped "Confirm Acknowledgment" on an urgent alert.
  * Composite primary key (alertId, userId) mirrors [LikeEntity]: one acknowledgement per
  * user per alert, so one resident confirming doesn't mark it confirmed for everyone else.
  */
+// @Serializable lets this double as the row model for Supabase's "alert_acknowledgements" table.
+@Serializable
 @Entity(
     tableName = "alert_acknowledgements",
     primaryKeys = ["alertId", "userId"],

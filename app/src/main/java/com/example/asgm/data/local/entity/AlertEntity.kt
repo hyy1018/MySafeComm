@@ -2,11 +2,15 @@ package com.example.asgm.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
+@Serializable
 enum class AlertPriority {
     INFO, URGENT
 }
 
+// @Serializable lets this same class double as the row model for the Supabase "alerts" table.
+@Serializable
 @Entity(tableName = "alerts")
 data class AlertEntity(
     @PrimaryKey(autoGenerate = true) val alertId: Long = 0,

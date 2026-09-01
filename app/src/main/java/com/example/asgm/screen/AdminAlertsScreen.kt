@@ -31,17 +31,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.local.entity.AlertPriority
-import kotlinx.coroutines.launch
+import com.example.asgm.viewmodel.AlertViewModel
+import com.example.asgm.viewmodel.AlertViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -53,9 +54,9 @@ private val adminAlertDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDe
 @Composable
 fun AdminAlertsScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val alertDao = remember { AppDatabase.getInstance(context).alertDao() }
-    val scope = rememberCoroutineScope()
-    val alerts by alertDao.getAll().collectAsState(initial = emptyList())
+    val db = remember { AppDatabase.getInstance(context) }
+    val viewModel: AlertViewModel = viewModel(factory = AlertViewModelFactory(db.alertDao()))
+    val alerts by viewModel.alerts.collectAsState()
 
     var alertPendingDelete by remember { mutableStateOf<AlertEntity?>(null) }
 
@@ -139,10 +140,8 @@ fun AdminAlertsScreen(navController: NavHostController) {
                 text = { Text("Residents will no longer see \"${alert.title}\" in Live Alerts.") },
                 confirmButton = {
                     TextButton(onClick = {
-                        scope.launch {
-                            alertDao.delete(alert)
-                            alertPendingDelete = null
-                        }
+                        viewModel.deleteAlert(alert)
+                        alertPendingDelete = null
                     }) { Text("Delete") }
                 },
                 dismissButton = {

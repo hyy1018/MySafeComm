@@ -37,21 +37,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
-import com.example.asgm.data.local.entity.AlertAcknowledgementEntity
 import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.local.entity.AlertPriority
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.launch
+import com.example.asgm.viewmodel.AlertAckViewModel
+import com.example.asgm.viewmodel.AlertAckViewModelFactory
+import com.example.asgm.viewmodel.AlertViewModel
+import com.example.asgm.viewmodel.AlertViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -63,8 +64,9 @@ private val alertDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault
 @Composable
 fun AlertScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val alertDao = remember { AppDatabase.getInstance(context).alertDao() }
-    val alerts by alertDao.getAll().collectAsState(initial = emptyList())
+    val db = remember { AppDatabase.getInstance(context) }
+    val alertViewModel: AlertViewModel = viewModel(factory = AlertViewModelFactory(db.alertDao()))
+    val alerts by alertViewModel.alerts.collectAsState()
 
     // Only one alert card is expanded at a time (mirrors the nullable-state dialog pattern).
     var expandedAlertId by remember { mutableStateOf<Long?>(null) }
@@ -124,13 +126,17 @@ private fun AlertCard(
     onToggleExpanded: () -> Unit
 ) {
     val context = LocalContext.current
-    val ackDao = remember { AppDatabase.getInstance(context).alertAcknowledgementDao() }
-    val scope = rememberCoroutineScope()
+    val db = remember { AppDatabase.getInstance(context) }
     val isUrgent = alert.priority == AlertPriority.URGENT
+    // Nullable, not requireUserId(): see MyReportsScreen for why -- this must not throw during
+    // a transient no-session composition (process death restoring the back stack).
     val userId = UserSession.currentUserId
-    val acknowledged by (
-        if (userId != null) ackDao.isAcknowledgedByUser(alert.alertId, userId) else emptyFlow()
-    ).collectAsState(initial = false)
+    val ackViewModel: AlertAckViewModel? = if (userId != null) {
+        viewModel(factory = AlertAckViewModelFactory(db.alertAcknowledgementDao(), alert.alertId, userId))
+    } else {
+        null
+    }
+    val acknowledged = ackViewModel?.acknowledged?.collectAsState()?.value ?: false
 
     Card(
         modifier = Modifier
@@ -173,16 +179,7 @@ private fun AlertCard(
                         }
                     } else {
                         Button(
-                            onClick = {
-                                scope.launch {
-                                    ackDao.acknowledge(
-                                        AlertAcknowledgementEntity(
-                                            alertId = alert.alertId,
-                                            userId = UserSession.requireUserId()
-                                        )
-                                    )
-                                }
-                            },
+                            onClick = { ackViewModel?.acknowledge() },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Confirm Acknowledgment")

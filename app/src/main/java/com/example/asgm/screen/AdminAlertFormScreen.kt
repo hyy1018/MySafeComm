@@ -24,31 +24,36 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.local.entity.AlertPriority
-import kotlinx.coroutines.launch
+import com.example.asgm.viewmodel.AlertDetailViewModel
+import com.example.asgm.viewmodel.AlertDetailViewModelFactory
+import com.example.asgm.viewmodel.AlertViewModel
+import com.example.asgm.viewmodel.AlertViewModelFactory
 
 /** Admin screen: one form for both adding a new alert and editing an existing one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminAlertFormScreen(alertId: Long, navController: NavHostController) {
     val context = LocalContext.current
-    val alertDao = remember { AppDatabase.getInstance(context).alertDao() }
-    val scope = rememberCoroutineScope()
+    val db = remember { AppDatabase.getInstance(context) }
+    val alertViewModel: AlertViewModel = viewModel(factory = AlertViewModelFactory(db.alertDao()))
     val isEditing = alertId != -1L
 
-    val existingAlert by if (isEditing) {
-        alertDao.getById(alertId).collectAsState(initial = null)
+    val existingAlert: AlertEntity? = if (isEditing) {
+        val detailViewModel: AlertDetailViewModel =
+            viewModel(factory = AlertDetailViewModelFactory(db.alertDao(), alertId))
+        detailViewModel.alert.collectAsState().value
     } else {
-        remember { mutableStateOf<AlertEntity?>(null) }
+        null
     }
 
     var title by remember { mutableStateOf("") }
@@ -124,26 +129,24 @@ fun AdminAlertFormScreen(alertId: Long, navController: NavHostController) {
             }
             Button(
                 onClick = {
-                    scope.launch {
-                        if (isEditing) {
-                            existingAlert?.let {
-                                alertDao.update(
-                                    it.copy(title = title.trim(), body = body.trim(), location = location.trim(), priority = priority)
-                                )
-                            }
-                        } else {
-                            alertDao.insert(
-                                AlertEntity(
-                                    title = title.trim(),
-                                    body = body.trim(),
-                                    location = location.trim(),
-                                    priority = priority,
-                                    issuedBy = UserSession.currentUserName ?: "Community Admin"
-                                )
+                    if (isEditing) {
+                        existingAlert?.let {
+                            alertViewModel.updateAlert(
+                                it.copy(title = title.trim(), body = body.trim(), location = location.trim(), priority = priority)
                             )
                         }
-                        navController.popBackStack()
+                    } else {
+                        alertViewModel.addAlert(
+                            AlertEntity(
+                                title = title.trim(),
+                                body = body.trim(),
+                                location = location.trim(),
+                                priority = priority,
+                                issuedBy = UserSession.currentUserName ?: "Community Admin"
+                            )
+                        )
                     }
+                    navController.popBackStack()
                 },
                 enabled = title.isNotBlank() && body.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
