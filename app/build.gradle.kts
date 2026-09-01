@@ -40,11 +40,17 @@ android {
 }
 
 // Coil 3.5.0 pulls in kotlin-stdlib 2.4.0, newer than this project's Kotlin compiler (2.2.10),
-// which fails with "compiled with an incompatible version of Kotlin". Pin the stdlib actually
-// used at compile/runtime back to the project's Kotlin version.
+// which fails to COMPILE with "compiled with an incompatible version of Kotlin". Forcing the
+// stdlib back down to exactly 2.2.10 (this project's own Kotlin version) fixed that, but then
+// broke at RUNTIME instead: androidx.lifecycle 2.11.0's SavedStateHandleSupport references
+// kotlin.jvm.internal.KotlinGenericDeclaration, a class that doesn't exist in kotlin-stdlib until
+// 2.3.20 (verified directly against the jars -- 2.2.10 and 2.3.0 don't have it, 2.3.20 does),
+// so every screen crashed on launch with NoClassDefFoundError the moment a ViewModel was created.
+// 2.3.20 is the sweet spot: new enough to have that class, but still close enough to 2.2.10 that
+// kotlinc 2.2.10 compiles against it fine (tested) -- unlike Coil's 2.4.0, which is too far ahead.
 configurations.all {
     resolutionStrategy {
-        force("org.jetbrains.kotlin:kotlin-stdlib:${libs.versions.kotlin.get()}")
+        force("org.jetbrains.kotlin:kotlin-stdlib:2.3.20")
     }
 }
 
