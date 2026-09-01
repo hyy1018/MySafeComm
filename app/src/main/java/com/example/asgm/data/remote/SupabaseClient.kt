@@ -7,8 +7,8 @@ import io.github.jan.supabase.postgrest.Postgrest
 // TODO: replace with your project's own values (Supabase dashboard -> Project Settings -> API).
 // SUPABASE_URL looks like "https://xxxxxxxxxxxx.supabase.co".
 // SUPABASE_KEY is the "anon public" key, NOT the service_role key.
-const val SUPABASE_URL = "SERVER URL"
-const val SUPABASE_KEY = "API KEY"
+const val SUPABASE_URL = "https://mmcmoewehhwvwwhxjabk.supabase.co"
+const val SUPABASE_KEY = "sb_publishable_cUr6vKSgRVjoDOhU5B1BTg_mMzM0zQN"
 
 // True once the two placeholders above have been replaced with real values. Every ViewModel's
 // cloud-write call checks this FIRST and skips the Supabase call entirely when false, so the
