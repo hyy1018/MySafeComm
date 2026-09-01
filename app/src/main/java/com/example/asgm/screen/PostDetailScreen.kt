@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.AlertDialog
@@ -45,10 +46,13 @@ import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.CommentEntity
+import com.example.asgm.data.local.entity.UserRole
 import com.example.asgm.viewmodel.PostDetailViewModel
 import com.example.asgm.viewmodel.PostDetailViewModelFactory
 import com.example.asgm.viewmodel.PostLikeViewModel
 import com.example.asgm.viewmodel.PostLikeViewModelFactory
+import com.example.asgm.viewmodel.PostViewModel
+import com.example.asgm.viewmodel.PostViewModelFactory
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 import java.text.SimpleDateFormat
@@ -67,6 +71,7 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
     val detailViewModel: PostDetailViewModel = viewModel(
         factory = PostDetailViewModelFactory(db.postDao(), db.commentDao(), db.likeDao(), postId)
     )
+    val postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(db.postDao()))
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
 
     val post by detailViewModel.post.collectAsState()
@@ -87,8 +92,13 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
     var commentText by remember { mutableStateOf("") }
     var showDeletePostConfirm by remember { mutableStateOf(false) }
     var commentPendingDelete by remember { mutableStateOf<CommentEntity?>(null) }
+    var editedContent by remember { mutableStateOf<String?>(null) }
 
     val isOwnPost = post?.userId == UserSession.currentUserId
+    val isAdmin = UserSession.currentUserRole == UserRole.ADMIN
+    // Admin gets the same delete-post/delete-comment powers as the post's own author, plus the
+    // ability to edit content -- same "feel" as viewing your own post, per the brief.
+    val canManage = isOwnPost || isAdmin
 
     Scaffold(
         topBar = {
@@ -100,7 +110,12 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                     }
                 },
                 actions = {
-                    if (isOwnPost) {
+                    if (isAdmin) {
+                        IconButton(onClick = { editedContent = post?.content ?: "" }) {
+                            Icon(Icons.Filled.Edit, contentDescription = "Edit post")
+                        }
+                    }
+                    if (canManage) {
                         IconButton(onClick = { showDeletePostConfirm = true }) {
                             Icon(Icons.Filled.Delete, contentDescription = "Delete post")
                         }
@@ -198,7 +213,7 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                     CommentRow(
                         comment = comment,
                         authorName = users.find { it.id == comment.userId }?.name ?: comment.userId,
-                        canDelete = isOwnPost,
+                        canDelete = canManage,
                         onDelete = { commentPendingDelete = comment },
                         onAuthorClick = { navController.navigate("profile/${comment.userId}") }
                     )
@@ -237,6 +252,35 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                 },
                 dismissButton = {
                     TextButton(onClick = { commentPendingDelete = null }) { Text("Cancel") }
+                }
+            )
+        }
+
+        editedContent?.let { draft ->
+            AlertDialog(
+                onDismissRequest = { editedContent = null },
+                title = { Text("Edit post") },
+                text = {
+                    OutlinedTextField(
+                        value = draft,
+                        onValueChange = { editedContent = it },
+                        minLines = 3,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val content = draft.trim()
+                            if (content.isNotEmpty()) {
+                                postViewModel.editByAdmin(postId, content, UserSession.requireUserId())
+                                editedContent = null
+                            }
+                        }
+                    ) { Text("Save") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { editedContent = null }) { Text("Cancel") }
                 }
             )
         }
