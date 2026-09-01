@@ -98,7 +98,8 @@ resident bottom nav bar. Three screens, all built on existing DAO methods (no ne
 |---|---|---|
 | Manage Reports | `admin_reports` | `ReportDao.getAll()` / `.updateStatus()` — status chips (Pending/In Progress/Solved) per report |
 | Manage Alerts | `admin_alerts` + `admin_alert_form?alertId={id}` | `AlertDao` insert/update/delete; one form screen handles both Add (`alertId=-1`) and Edit |
-| Manage Posts | `admin_posts` | `PostDao.editByAdmin()` — edit any resident's post content |
+| Manage Posts | `admin_posts` → `community_post/{postId}` | Browsing list only; tapping a post opens the same `PostDetailScreen` a resident sees for their own post, where Admin gets edit/delete-post/delete-comment (see Community Feed addon module below) |
+| Messages | `admin_messages` (badge: unseen count) | `MessagesInboxScreen` — see Contact Admin messaging below |
 
 ## Profile
 
@@ -107,18 +108,25 @@ resident bottom nav bar. Three screens, all built on existing DAO methods (no ne
 signed-in user, or a read-only view of someone else's profile otherwise. Reached from the Main
 Hub's account icon (own profile), from tapping any post/comment author's name, and from
 `MembersScreen` (route `members`, reachable via a People icon on Community Feed) — a directory
-listing every account so residents can see who else is in the community.
+listing every account so residents can see who else is in the community. Your own row is pinned
+to the top of that list with a "ME" label and does nothing when tapped (nothing to view/message
+about yourself); every other row is tappable to their profile and carries a small chat icon that
+opens a direct message thread with them (see Contact Admin messaging below — the same generic
+messaging, not a separate system).
 
-Friends/connections, private messaging, and group chat were asked about and intentionally not
-built: a friends system needs a request/accept table and UI; 1:1 messaging needs a
-conversations+messages schema and a chat UI; group chat needs that plus a membership table on
-top. All three are meaningfully larger than anything else in this app so far (comparable to
-building a small chat app) and were deferred rather than attempted partially.
+Own profile also has a "Change Password" button (`ChangePasswordScreen`, route `change_password`
+— self-service, requires the current password, same `PasswordRules` and new-can't-equal-old rule
+as Admin's reset) and a "My Messages" button (`messages_inbox/{userId}`) for checking replies from
+an admin or messages from another resident.
+
+A dedicated friends/connections system (request/accept flow, its own table) was asked about and
+intentionally not built — direct messaging already covers "reach a specific person," and a
+follow/friend list on top of that would be a separate feature with no clear use yet.
 
 Manage Contacts (EmergencyContacts) and Manage Guides (SafetyGuides) don't have Admin screens
 yet — they weren't in the original `yay.pdf` wireframes and are still just the seeded data.
 
-## Contact Admin messaging (replaces "Forgot password")
+## Messaging (Contact Admin, direct chat, and checking for replies)
 
 `LoginScreen`'s "Forgot?" used to just show a snackbar telling you to contact your admin, with no
 actual way to do it. It now opens `ContactAdminScreen` (route `contact_admin`, a public route --
@@ -129,17 +137,29 @@ the brief -- it's a simple inbox.
 
 New table: `Messages (MessageID PK, FromUserID FK->Users.Id, ToUserID FK->Users.Id, Body,
 Timestamp)`. `FromUserId`/`ToUserId` are generic, not fixed to "resident"/"admin" -- an admin's
-reply is just another row with the two ids swapped, so the same table and the same
-`MessageDao.getThread(userA, userB)` query serve both directions of a conversation.
+reply, and a direct message between two residents (started from a chat icon in Community's
+Members list), are just more rows in the same table, so one set of screens serves every case:
 
-Admin side: a new "Messages" entry in the Admin Hub (`AdminMessagesScreen`, route
-`admin_messages`) lists everyone who has messaged that admin (`MessageDao.getConversationPartnerIds`),
-tapping one opens `MessageThreadScreen` (route `message_thread/{otherUserId}`) showing the full
-back-and-forth plus a reply box. Local Room's `Flow` already updates both screens live the moment
-a message is inserted -- the Refresh button in both screens' top bar exists for the case the
-teacher's brief specifically called out as acceptable if real-time is hard: pulling in a message
-that only exists in Supabase because it was sent from a different device/install
-(`MessageViewModel.refreshFromCloud`).
+- `MessagesInboxScreen` (route `messages_inbox/{userId}`) -- who `userId` has exchanged messages
+  with (`MessageDao.getConversationPartnerIds`). Reached three ways: Admin Hub's "Messages" card
+  (`admin_messages`, wraps this with `userId` = the admin's own session id, plus an unseen-count
+  badge -- see below), a signed-in resident's Profile → "My Messages" (same pattern, their own
+  session id), and a signed-out resident's Login → "Check Messages" (`CheckMessagesScreen`: type
+  your ID, same existence check as Contact Admin, then this screen with that typed id).
+- `MessageThreadScreen` (route `message_thread/{myUserId}/{otherUserId}`) -- the full
+  back-and-forth between those two ids plus a reply box, via `MessageDao.getThread(userA, userB)`.
+  `myUserId` is passed explicitly rather than read from session, precisely so the signed-out
+  "Check Messages" path (no session to read) works the same way as the signed-in ones.
+
+Local Room's `Flow` already updates both screens live the moment a message is inserted -- the
+Refresh button in both screens' top bar exists for the case the teacher's brief specifically
+called out as acceptable if real-time is hard: pulling in a message that only exists in Supabase
+because it was sent from a different device/install (`MessageViewModel.refreshFromCloud`).
+
+Unread badge: `Users.LastSeenMessagesAt` (same shape as `LastSeenActivityAt`) compared against
+each message's timestamp via `MessageDao.getUnseenMessageCount`, stamped to "now" when
+`MessagesInboxScreen` opens. Currently only wired onto Admin Hub's "Messages" card, since that's
+where the brief asked for it -- residents' "My Messages" doesn't show one yet.
 
 ## Architecture: ViewModel + StateFlow, and Supabase as a second data store
 

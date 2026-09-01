@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,19 +37,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.UserEntity
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 
 /**
- * Community directory: everyone's name/avatar, tap to see their profile. Friends, private
- * messaging and group chat were asked about and intentionally not built here -- see the
- * conversation for the scope call -- this is just "who lives here."
+ * Community directory: everyone's name/avatar. Tapping someone else opens their read-only
+ * profile; a small chat icon opens a direct message thread with them (the same generic messaging
+ * used for Contact Admin). Your own row is pinned to the top with a "ME" label and doesn't do
+ * anything when tapped -- there's nothing to view/message about yourself from here.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +60,12 @@ fun MembersScreen(navController: NavHostController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
-    val members by userViewModel.users.collectAsState()
+    val users by userViewModel.users.collectAsState()
+    val currentUserId = UserSession.currentUserId
+    val members = remember(users, currentUserId) {
+        val (me, others) = users.partition { it.id == currentUserId }
+        me + others
+    }
 
     Scaffold(
         topBar = {
@@ -84,7 +93,15 @@ fun MembersScreen(navController: NavHostController) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(members, key = { it.id }) { member ->
-                    MemberRow(member) { navController.navigate("profile/${member.id}") }
+                    val isSelf = member.id == currentUserId
+                    MemberRow(
+                        member = member,
+                        isSelf = isSelf,
+                        onClick = { if (!isSelf) navController.navigate("profile/${member.id}") },
+                        onChatClick = {
+                            navController.navigate("message_thread/${UserSession.requireUserId()}/${member.id}")
+                        }
+                    )
                 }
             }
         }
@@ -92,11 +109,16 @@ fun MembersScreen(navController: NavHostController) {
 }
 
 @Composable
-private fun MemberRow(member: UserEntity, onClick: () -> Unit) {
+private fun MemberRow(
+    member: UserEntity,
+    isSelf: Boolean,
+    onClick: () -> Unit,
+    onChatClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = !isSelf, onClick = onClick)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -126,13 +148,28 @@ private fun MemberRow(member: UserEntity, onClick: () -> Unit) {
                 }
             }
             Spacer(Modifier.width(12.dp))
-            Column {
-                Text(member.name, style = MaterialTheme.typography.titleSmall)
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(member.name, style = MaterialTheme.typography.titleSmall)
+                    if (isSelf) {
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            "ME",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
                 Text(
                     member.role.name.lowercase().replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+            if (!isSelf) {
+                IconButton(onClick = onChatClick) {
+                    Icon(Icons.Filled.ChatBubbleOutline, contentDescription = "Message ${member.name}")
+                }
             }
         }
     }
