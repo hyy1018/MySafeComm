@@ -40,11 +40,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.PostEntity
+import com.example.asgm.viewmodel.PostViewModel
+import com.example.asgm.viewmodel.PostViewModelFactory
 import kotlinx.coroutines.launch
 
 /** User screen: create a new Community Feed post. */
@@ -52,7 +55,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun NewPostScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val postDao = remember { AppDatabase.getInstance(context).postDao() }
+    val db = remember { AppDatabase.getInstance(context) }
+    val postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(db.postDao()))
     val scope = rememberCoroutineScope()
 
     var content by remember { mutableStateOf("") }
@@ -129,7 +133,7 @@ fun NewPostScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     scope.launch {
-                        postDao.insert(
+                        postViewModel.submit(
                             PostEntity(
                                 userId = UserSession.requireUserId(),
                                 content = content.trim(),

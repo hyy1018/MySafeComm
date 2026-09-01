@@ -40,10 +40,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.PostEntity
+import com.example.asgm.data.local.entity.UserEntity
+import com.example.asgm.viewmodel.PostDetailViewModel
+import com.example.asgm.viewmodel.PostDetailViewModelFactory
+import com.example.asgm.viewmodel.PostViewModel
+import com.example.asgm.viewmodel.PostViewModelFactory
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.flow.emptyFlow
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -56,12 +64,15 @@ fun CommunityFeedScreen(navController: NavHostController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
     val postDao = db.postDao()
-    val posts by postDao.getAll().collectAsState(initial = emptyList())
+    val postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(postDao))
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
+    val posts by postViewModel.posts.collectAsState()
+    val users by userViewModel.users.collectAsState()
 
+    // Cuts across Post+User, no single-entity ViewModel to live in cleanly -- left as a direct
+    // Flow here, same as AppBottomBar's identical badge computation.
     val userId = UserSession.currentUserId
-    val currentUser by (
-        if (userId != null) db.userDao().observeById(userId) else emptyFlow()
-    ).collectAsState(initial = null)
+    val currentUser = users.find { it.id == userId }
     val unseenActivityCount by (
         if (userId != null) {
             postDao.getUnseenActivityCount(userId, currentUser?.lastSeenActivityAt ?: 0)
@@ -118,6 +129,7 @@ fun CommunityFeedScreen(navController: NavHostController) {
                 items(posts, key = { it.postId }) { post ->
                     PostCard(
                         post = post,
+                        users = users,
                         onClick = { navController.navigate("community_post/${post.postId}") },
                         onAuthorClick = { navController.navigate("profile/${post.userId}") }
                     )
@@ -130,12 +142,20 @@ fun CommunityFeedScreen(navController: NavHostController) {
 private val postDateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
 
 @Composable
-private fun PostCard(post: PostEntity, onClick: () -> Unit, onAuthorClick: () -> Unit) {
+private fun PostCard(
+    post: PostEntity,
+    users: List<UserEntity>,
+    onClick: () -> Unit,
+    onAuthorClick: () -> Unit
+) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
-    val likeCount by db.likeDao().getLikeCount(post.postId).collectAsState(initial = 0)
-    val comments by db.commentDao().getByPost(post.postId).collectAsState(initial = emptyList())
-    val author by db.userDao().observeById(post.userId).collectAsState(initial = null)
+    val detailViewModel: PostDetailViewModel = viewModel(
+        factory = PostDetailViewModelFactory(db.postDao(), db.commentDao(), db.likeDao(), post.postId)
+    )
+    val likeCount by detailViewModel.likeCount.collectAsState()
+    val comments by detailViewModel.comments.collectAsState()
+    val author = users.find { it.id == post.userId }
 
     Card(
         modifier = Modifier

@@ -35,19 +35,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.CommentEntity
-import com.example.asgm.data.local.entity.LikeEntity
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.launch
+import com.example.asgm.viewmodel.PostDetailViewModel
+import com.example.asgm.viewmodel.PostDetailViewModelFactory
+import com.example.asgm.viewmodel.PostLikeViewModel
+import com.example.asgm.viewmodel.PostLikeViewModelFactory
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -60,16 +63,26 @@ private val dateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDe
 fun PostDetailScreen(postId: Long, navController: NavHostController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
-    val scope = rememberCoroutineScope()
 
-    val post by db.postDao().getById(postId).collectAsState(initial = null)
-    val comments by db.commentDao().getByPost(postId).collectAsState(initial = emptyList())
-    val likeCount by db.likeDao().getLikeCount(postId).collectAsState(initial = 0)
+    val detailViewModel: PostDetailViewModel = viewModel(
+        factory = PostDetailViewModelFactory(db.postDao(), db.commentDao(), db.likeDao(), postId)
+    )
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
+
+    val post by detailViewModel.post.collectAsState()
+    val comments by detailViewModel.comments.collectAsState()
+    val likeCount by detailViewModel.likeCount.collectAsState()
+    val users by userViewModel.users.collectAsState()
+    // Nullable, not requireUserId(): see MyReportsScreen for why -- must not throw during a
+    // transient no-session composition.
     val currentUserId = UserSession.currentUserId
-    val liked by (
-        if (currentUserId != null) db.likeDao().isLikedByUser(postId, currentUserId) else emptyFlow()
-    ).collectAsState(initial = false)
-    val author by db.userDao().observeById(post?.userId ?: "").collectAsState(initial = null)
+    val likeViewModel: PostLikeViewModel? = if (currentUserId != null) {
+        viewModel(factory = PostLikeViewModelFactory(db.likeDao(), postId, currentUserId))
+    } else {
+        null
+    }
+    val liked = likeViewModel?.liked?.collectAsState()?.value ?: false
+    val author = users.find { it.id == post?.userId }
 
     var commentText by remember { mutableStateOf("") }
     var showDeletePostConfirm by remember { mutableStateOf(false) }
@@ -113,16 +126,8 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                     onClick = {
                         val text = commentText.trim()
                         if (text.isNotEmpty()) {
-                            scope.launch {
-                                db.commentDao().insert(
-                                    CommentEntity(
-                                        postId = postId,
-                                        userId = UserSession.requireUserId(),
-                                        content = text
-                                    )
-                                )
-                                commentText = ""
-                            }
+                            detailViewModel.addComment(UserSession.requireUserId(), text)
+                            commentText = ""
                         }
                     }
                 ) {
@@ -173,15 +178,8 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(
                                 onClick = {
-                                    scope.launch {
-                                        if (liked) {
-                                            db.likeDao().unlike(postId, UserSession.requireUserId())
-                                        } else {
-                                            db.likeDao().like(
-                                                LikeEntity(postId = postId, userId = UserSession.requireUserId())
-                                            )
-                                        }
-                                    }
+                                    val userId = UserSession.requireUserId()
+                                    if (liked) detailViewModel.unlike(userId) else detailViewModel.like(userId)
                                 }
                             ) {
                                 Icon(
@@ -199,6 +197,7 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                 items(comments, key = { it.commentId }) { comment ->
                     CommentRow(
                         comment = comment,
+                        authorName = users.find { it.id == comment.userId }?.name ?: comment.userId,
                         canDelete = isOwnPost,
                         onDelete = { commentPendingDelete = comment },
                         onAuthorClick = { navController.navigate("profile/${comment.userId}") }
@@ -214,11 +213,9 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                 text = { Text("This removes the post and its comments and likes. This cannot be undone.") },
                 confirmButton = {
                     TextButton(onClick = {
-                        scope.launch {
-                            db.postDao().delete(currentPost)
-                            showDeletePostConfirm = false
-                            navController.popBackStack()
-                        }
+                        detailViewModel.deletePost(currentPost)
+                        showDeletePostConfirm = false
+                        navController.popBackStack()
                     }) { Text("Delete") }
                 },
                 dismissButton = {
@@ -234,10 +231,8 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                 text = { Text("This cannot be undone.") },
                 confirmButton = {
                     TextButton(onClick = {
-                        scope.launch {
-                            db.commentDao().delete(comment)
-                            commentPendingDelete = null
-                        }
+                        detailViewModel.deleteComment(comment)
+                        commentPendingDelete = null
                     }) { Text("Delete") }
                 },
                 dismissButton = {
@@ -251,18 +246,15 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
 @Composable
 private fun CommentRow(
     comment: CommentEntity,
+    authorName: String,
     canDelete: Boolean,
     onDelete: () -> Unit,
     onAuthorClick: () -> Unit
 ) {
-    val context = LocalContext.current
-    val author by AppDatabase.getInstance(context).userDao().observeById(comment.userId)
-        .collectAsState(initial = null)
-
     Row(verticalAlignment = Alignment.Top) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = if (comment.userId == UserSession.currentUserId) "You" else (author?.name ?: comment.userId),
+                text = if (comment.userId == UserSession.currentUserId) "You" else authorName,
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.clickable(onClick = onAuthorClick)
             )

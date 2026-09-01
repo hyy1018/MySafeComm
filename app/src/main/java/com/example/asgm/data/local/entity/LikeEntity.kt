@@ -3,10 +3,13 @@ package com.example.asgm.data.local.entity
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import kotlinx.serialization.Serializable
 
 /**
  * Composite primary key (postId, userId) guarantees a user can like a post at most once.
  */
+// @Serializable lets this same class double as the row model for the Supabase "likes" table.
+@Serializable
 @Entity(
     tableName = "likes",
     primaryKeys = ["postId", "userId"],

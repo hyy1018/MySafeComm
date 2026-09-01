@@ -39,13 +39,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.MainHubData
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.model.MainHubItem
-import kotlinx.coroutines.flow.emptyFlow
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,9 +57,10 @@ fun MainHubScreen(
 ) {
     val context = LocalContext.current
     val userId = UserSession.currentUserId
-    val currentUser by (
-        if (userId != null) AppDatabase.getInstance(context).userDao().observeById(userId) else emptyFlow()
-    ).collectAsState(initial = null)
+    val userViewModel: UserViewModel =
+        viewModel(factory = UserViewModelFactory(AppDatabase.getInstance(context).userDao()))
+    val users by userViewModel.users.collectAsState()
+    val currentUser = users.find { it.id == userId }
 
     Scaffold(
         topBar = {

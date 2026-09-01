@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
@@ -39,7 +40,16 @@ import com.example.asgm.data.local.entity.EmergencyContactEntity
 import com.example.asgm.data.local.entity.PostEntity
 import com.example.asgm.data.local.entity.ReportEntity
 import com.example.asgm.data.local.entity.SafetyGuideEntity
-import kotlinx.coroutines.flow.emptyFlow
+import com.example.asgm.viewmodel.AlertViewModel
+import com.example.asgm.viewmodel.AlertViewModelFactory
+import com.example.asgm.viewmodel.EmergencyContactViewModel
+import com.example.asgm.viewmodel.EmergencyContactViewModelFactory
+import com.example.asgm.viewmodel.MyReportsViewModel
+import com.example.asgm.viewmodel.MyReportsViewModelFactory
+import com.example.asgm.viewmodel.PostViewModel
+import com.example.asgm.viewmodel.PostViewModelFactory
+import com.example.asgm.viewmodel.SafetyGuideViewModel
+import com.example.asgm.viewmodel.SafetyGuideViewModelFactory
 
 private data class SearchResult(val category: String, val title: String, val subtitle: String, val route: String)
 
@@ -51,14 +61,24 @@ fun SearchScreen(navController: NavHostController) {
     val db = remember { AppDatabase.getInstance(context) }
     var query by remember { mutableStateOf("") }
 
-    val posts by db.postDao().getAll().collectAsState(initial = emptyList())
-    val alerts by db.alertDao().getAll().collectAsState(initial = emptyList())
+    val posts by viewModel<PostViewModel>(factory = PostViewModelFactory(db.postDao()))
+        .posts.collectAsState()
+    val alerts by viewModel<AlertViewModel>(factory = AlertViewModelFactory(db.alertDao()))
+        .alerts.collectAsState()
+    // Nullable, not requireUserId(): see MyReportsScreen for why -- must not throw during a
+    // transient no-session composition.
     val userId = UserSession.currentUserId
-    val reports by (
-        if (userId != null) db.reportDao().getByUser(userId) else emptyFlow()
-    ).collectAsState(initial = emptyList())
-    val guides by db.safetyGuideDao().getAll().collectAsState(initial = emptyList())
-    val contacts by db.emergencyContactDao().getAll().collectAsState(initial = emptyList())
+    val reports: List<ReportEntity> = if (userId != null) {
+        viewModel<MyReportsViewModel>(factory = MyReportsViewModelFactory(db.reportDao(), userId))
+            .reports.collectAsState().value
+    } else {
+        emptyList()
+    }
+    val guides by viewModel<SafetyGuideViewModel>(factory = SafetyGuideViewModelFactory(db.safetyGuideDao()))
+        .guides.collectAsState()
+    val contacts by viewModel<EmergencyContactViewModel>(
+        factory = EmergencyContactViewModelFactory(db.emergencyContactDao())
+    ).contacts.collectAsState()
 
     val results = remember(query, posts, alerts, reports, guides, contacts) {
         if (query.isBlank()) emptyList() else buildSearchResults(query, posts, alerts, reports, guides, contacts)

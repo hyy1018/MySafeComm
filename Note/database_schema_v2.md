@@ -117,3 +117,42 @@ building a small chat app) and were deferred rather than attempted partially.
 
 Manage Contacts (EmergencyContacts) and Manage Guides (SafetyGuides) don't have Admin screens
 yet — they weren't in the original `yay.pdf` wireframes and are still just the seeded data.
+
+## Architecture: ViewModel + StateFlow, and Supabase as a second data store
+
+Matches the course's taught Room method (`RoomDbTest.zip`: `PersonDb`/`PersonViewModel`/
+`PersonViewModelFactory`) rather than screens calling a DAO directly:
+
+```
+UI -> ViewModel (StateFlow via dao.getAll().stateIn(...)) -> Dao -> Room (local)
+               \-> Supabase (cloud), same write, mirrored -> Postgres
+```
+
+Every entity has a matching `viewmodel/*ViewModel.kt` (one file per module: SOS's
+`EmergencyContactViewModel`/`SafetyGuideViewModel`, `UserViewModel`/`UserDetailViewModel`,
+`ReportViewModel`/`MyReportsViewModel`/`ReportDetailViewModel`, `AlertViewModel`/
+`AlertDetailViewModel`/`AlertAckViewModel`, `PostViewModel`/`PostDetailViewModel`/
+`PostLikeViewModel`/`ActivityViewModel`). No screen calls `AppDatabase...Dao()` and reads from it
+directly anymore — it's always through one of these ViewModels, obtained via
+`viewModel(factory = ...Factory(dao))`. A ViewModel that needs one specific row (a single user's
+profile, one report, one alert) takes that id through its Factory instead of the shared list
+ViewModel, so its `StateFlow` is built once in the ViewModel's body rather than re-created every
+recomposition — see `SafetyGuideDetailViewModel`/`UserDetailViewModel`/`ReportDetailViewModel` for
+the pattern. Two small, deliberately-left exceptions: the bottom nav's badge counts
+(`AlertDao.getUnacknowledgedUrgentCount`, `PostDao.getUnseenActivityCount`) stay as direct DAO
+`Flow`s in `AppBottomBar`/`CommunityFeedScreen`, since each spans two entities with no single
+ViewModel to live in cleanly, and they're read-only.
+
+Every entity class (`UserEntity`, `ReportEntity`, `AlertEntity`,
+`AlertAcknowledgementEntity`, `EmergencyContactEntity`, `SafetyGuideEntity`, `PostEntity`,
+`CommentEntity`, `LikeEntity`, and their enums) is annotated both `@Entity` (Room) and
+`@Serializable` (kotlinx.serialization) — the same class doubles as the Supabase row model, so
+there's no separate "cloud" data class to keep in sync. Per the requirement that data live in
+**both** places, every ViewModel write method writes to Room first, then mirrors the identical
+write to the matching Supabase table (`Note/supabase_setup.md` has the full table DDL). Since Room
+assigns autoGenerate ids locally, the Supabase insert explicitly reuses that same id rather than
+letting Postgres generate its own, so a row's id agrees between both stores. Every Supabase call is
+gated behind `isSupabaseConfigured` (true once `SupabaseClient.kt`'s placeholder URL/key are
+replaced with a real project's values) and wrapped in `try/catch`, so the app runs fully offline
+against Room alone until the cloud project is set up, and a lost network connection afterwards
+never blocks the local write.

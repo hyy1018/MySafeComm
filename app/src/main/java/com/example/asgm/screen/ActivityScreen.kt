@@ -40,10 +40,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.data.local.entity.UserEntity
+import com.example.asgm.viewmodel.ActivityViewModel
+import com.example.asgm.viewmodel.ActivityViewModelFactory
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -72,11 +78,15 @@ fun ActivityScreen(navController: NavHostController) {
     val db = remember { AppDatabase.getInstance(context) }
     val userId = UserSession.requireUserId()
 
-    val likes by db.likeDao().getLikesOnUserPosts(userId).collectAsState(initial = emptyList())
-    val comments by db.commentDao().getCommentsOnUserPosts(userId).collectAsState(initial = emptyList())
+    val activityViewModel: ActivityViewModel =
+        viewModel(factory = ActivityViewModelFactory(db.commentDao(), db.likeDao(), userId))
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
+    val likes by activityViewModel.likes.collectAsState()
+    val comments by activityViewModel.comments.collectAsState()
+    val users by userViewModel.users.collectAsState()
 
     LaunchedEffect(Unit) {
-        db.userDao().updateLastSeenActivity(userId, System.currentTimeMillis())
+        userViewModel.updateLastSeenActivity(userId, System.currentTimeMillis())
     }
 
     val items = remember(likes, comments) {
@@ -111,7 +121,7 @@ fun ActivityScreen(navController: NavHostController) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(items, key = { "${it.type}_${it.postId}_${it.actorId}_${it.timestamp}" }) { item ->
-                    ActivityRow(item) { navController.navigate("community_post/${item.postId}") }
+                    ActivityRow(item, users) { navController.navigate("community_post/${item.postId}") }
                 }
             }
         }
@@ -119,10 +129,8 @@ fun ActivityScreen(navController: NavHostController) {
 }
 
 @Composable
-private fun ActivityRow(item: ActivityItem, onClick: () -> Unit) {
-    val context = LocalContext.current
-    val db = remember { AppDatabase.getInstance(context) }
-    val actor by db.userDao().observeById(item.actorId).collectAsState(initial = null)
+private fun ActivityRow(item: ActivityItem, users: List<UserEntity>, onClick: () -> Unit) {
+    val actor = users.find { it.id == item.actorId }
 
     Card(
         modifier = Modifier

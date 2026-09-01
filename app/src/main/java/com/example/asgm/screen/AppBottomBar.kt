@@ -17,10 +17,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.viewmodel.UserViewModel
+import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.flow.emptyFlow
 
 private data class BottomNavItem(val route: String, val label: String, val icon: ImageVector)
@@ -50,9 +53,10 @@ fun AppBottomBar(navController: NavHostController) {
     ).collectAsState(initial = 0)
 
     // Same idea for Community: an Instagram-style badge for unseen likes/comments on your posts.
-    val currentUser by (
-        if (userId != null) AppDatabase.getInstance(context).userDao().observeById(userId) else emptyFlow()
-    ).collectAsState(initial = null)
+    val userViewModel: UserViewModel =
+        viewModel(factory = UserViewModelFactory(AppDatabase.getInstance(context).userDao()))
+    val users by userViewModel.users.collectAsState()
+    val currentUser = users.find { it.id == userId }
     val unseenActivityCount by (
         if (userId != null) {
             AppDatabase.getInstance(context).postDao()
