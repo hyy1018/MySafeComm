@@ -28,8 +28,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -63,7 +61,6 @@ fun LoginScreen(navController: NavHostController) {
     val db = remember { AppDatabase.getInstance(context) }
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     var selectedTab by remember { mutableStateOf(LoginTab.USER) }
     var userId by remember { mutableStateOf("") }
@@ -71,9 +68,7 @@ fun LoginScreen(navController: NavHostController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoggingIn by remember { mutableStateOf(false) }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -167,11 +162,7 @@ fun LoginScreen(navController: NavHostController) {
                         modifier = Modifier.fillMaxWidth()
                     )
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(
-                            onClick = {
-                                scope.launch { snackbarHostState.showSnackbar("Contact your community admin to reset your password") }
-                            }
-                        ) {
+                        TextButton(onClick = { navController.navigate("contact_admin") }) {
                             Text("Forgot?")
                         }
                     }

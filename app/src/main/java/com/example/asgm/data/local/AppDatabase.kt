@@ -11,6 +11,7 @@ import com.example.asgm.data.local.dao.AlertDao
 import com.example.asgm.data.local.dao.CommentDao
 import com.example.asgm.data.local.dao.EmergencyContactDao
 import com.example.asgm.data.local.dao.LikeDao
+import com.example.asgm.data.local.dao.MessageDao
 import com.example.asgm.data.local.dao.PostDao
 import com.example.asgm.data.local.dao.ReportDao
 import com.example.asgm.data.local.dao.SafetyGuideDao
@@ -20,6 +21,7 @@ import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.local.entity.CommentEntity
 import com.example.asgm.data.local.entity.EmergencyContactEntity
 import com.example.asgm.data.local.entity.LikeEntity
+import com.example.asgm.data.local.entity.MessageEntity
 import com.example.asgm.data.local.entity.PostEntity
 import com.example.asgm.data.local.entity.ReportEntity
 import com.example.asgm.data.local.entity.SafetyGuideEntity
@@ -35,9 +37,10 @@ import com.example.asgm.data.local.entity.UserEntity
         SafetyGuideEntity::class,
         PostEntity::class,
         CommentEntity::class,
-        LikeEntity::class
+        LikeEntity::class,
+        MessageEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -51,6 +54,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun postDao(): PostDao
     abstract fun commentDao(): CommentDao
     abstract fun likeDao(): LikeDao
+    abstract fun messageDao(): MessageDao
 
     companion object {
         @Volatile

@@ -26,7 +26,9 @@ Notes on the design choices, so nothing looks accidental:
 
 Safe to run more than once — every `create table` is guarded with `if not exists` and every
 seed `insert` with `on conflict do nothing`, so re-running this after it already succeeded once
-just does nothing instead of erroring.
+just does nothing instead of erroring. That also means if you already ran an earlier version of
+this script (without the `messages` table), you can just paste this updated version in and re-run
+it — the 9 existing tables are skipped and only `messages` gets created.
 
 ```sql
 create table if not exists users (
@@ -107,6 +109,14 @@ create table if not exists likes (
   primary key ("postId", "userId")
 );
 
+create table if not exists messages (
+  "messageId" bigint primary key,
+  "fromUserId" text not null references users(id) on delete cascade,
+  "toUserId" text not null references users(id) on delete cascade,
+  body text not null,
+  timestamp bigint not null
+);
+
 alter table users disable row level security;
 alter table alerts disable row level security;
 alter table alert_acknowledgements disable row level security;
@@ -116,6 +126,7 @@ alter table reports disable row level security;
 alter table posts disable row level security;
 alter table comments disable row level security;
 alter table likes disable row level security;
+alter table messages disable row level security;
 
 -- Seed the same starting data the local Room DB seeds, so both stores start in sync.
 insert into users (id, password, name, role, phone, address, email) values

@@ -3,6 +3,7 @@ package com.example.asgm.data
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.ManageAccounts
+import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ReportProblem
 import com.example.asgm.model.MainHubItem
@@ -37,6 +38,13 @@ object AdminHubData {
             subtitle = "Add Admin accounts, reset a resident's password",
             icon = Icons.Filled.ManageAccounts,
             route = "admin_users"
+        ),
+        MainHubItem(
+            id = "manage_messages",
+            title = "Messages",
+            subtitle = "Residents contacting you (e.g. forgot password)",
+            icon = Icons.Filled.Mail,
+            route = "admin_messages"
         )
     )
 }

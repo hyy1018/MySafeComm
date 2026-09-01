@@ -24,14 +24,17 @@ import com.example.asgm.screen.AdminResetPasswordScreen
 import com.example.asgm.screen.AdminPostsScreen
 import com.example.asgm.screen.AdminReportsScreen
 import com.example.asgm.screen.AdminUsersScreen
+import com.example.asgm.screen.AdminMessagesScreen
 import com.example.asgm.screen.AlertScreen
 import com.example.asgm.screen.ChangePasswordScreen
 import com.example.asgm.screen.CommunityFeedScreen
 import com.example.asgm.screen.CompleteProfileScreen
+import com.example.asgm.screen.ContactAdminScreen
 import com.example.asgm.screen.EmergencyHubScreen
 import com.example.asgm.screen.LoginScreen
 import com.example.asgm.screen.MainHubScreen
 import com.example.asgm.screen.MembersScreen
+import com.example.asgm.screen.MessageThreadScreen
 import com.example.asgm.screen.MyReportsScreen
 import com.example.asgm.screen.NewPostScreen
 import com.example.asgm.screen.PostDetailScreen
@@ -42,7 +45,7 @@ import com.example.asgm.screen.SafetyGuideDetailScreen
 import com.example.asgm.screen.SearchScreen
 import com.example.asgm.screen.SignUpScreen
 
-private val publicRoutes = setOf("login", "signup")
+private val publicRoutes = setOf("login", "signup", "contact_admin")
 
 @Composable
 fun AppNavGraph(navController: NavHostController = rememberNavController()) {
@@ -72,6 +75,7 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
     ) {
         composable("login") { LoginScreen(navController) }
         composable("signup") { SignUpScreen(navController) }
+        composable("contact_admin") { ContactAdminScreen(navController) }
         composable("complete_profile") { CompleteProfileScreen(navController) }
         composable("main_hub") {
             MainHubScreen(
@@ -123,6 +127,14 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         composable("admin_users") { AdminUsersScreen(navController) }
         composable("admin_add_admin") { AdminAddAdminScreen(navController) }
         composable("admin_reset_password") { AdminResetPasswordScreen(navController) }
+        composable("admin_messages") { AdminMessagesScreen(navController) }
+        composable(
+            route = "message_thread/{otherUserId}",
+            arguments = listOf(navArgument("otherUserId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val otherUserId = backStackEntry.arguments?.getString("otherUserId") ?: return@composable
+            MessageThreadScreen(otherUserId = otherUserId, navController = navController)
+        }
         composable(
             route = "profile/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })

@@ -118,6 +118,29 @@ building a small chat app) and were deferred rather than attempted partially.
 Manage Contacts (EmergencyContacts) and Manage Guides (SafetyGuides) don't have Admin screens
 yet — they weren't in the original `yay.pdf` wireframes and are still just the seeded data.
 
+## Contact Admin messaging (replaces "Forgot password")
+
+`LoginScreen`'s "Forgot?" used to just show a snackbar telling you to contact your admin, with no
+actual way to do it. It now opens `ContactAdminScreen` (route `contact_admin`, a public route --
+reachable while signed out): you type your own User ID (since you can't authenticate), pick which
+admin to send it to from a dropdown built from `UserViewModel.users` filtered to `role == ADMIN`
+(so it grows automatically as more admins are added), and write a message. Not real-time chat, per
+the brief -- it's a simple inbox.
+
+New table: `Messages (MessageID PK, FromUserID FK->Users.Id, ToUserID FK->Users.Id, Body,
+Timestamp)`. `FromUserId`/`ToUserId` are generic, not fixed to "resident"/"admin" -- an admin's
+reply is just another row with the two ids swapped, so the same table and the same
+`MessageDao.getThread(userA, userB)` query serve both directions of a conversation.
+
+Admin side: a new "Messages" entry in the Admin Hub (`AdminMessagesScreen`, route
+`admin_messages`) lists everyone who has messaged that admin (`MessageDao.getConversationPartnerIds`),
+tapping one opens `MessageThreadScreen` (route `message_thread/{otherUserId}`) showing the full
+back-and-forth plus a reply box. Local Room's `Flow` already updates both screens live the moment
+a message is inserted -- the Refresh button in both screens' top bar exists for the case the
+teacher's brief specifically called out as acceptable if real-time is hard: pulling in a message
+that only exists in Supabase because it was sent from a different device/install
+(`MessageViewModel.refreshFromCloud`).
+
 ## Architecture: ViewModel + StateFlow, and Supabase as a second data store
 
 Matches the course's taught Room method (`RoomDbTest.zip`: `PersonDb`/`PersonViewModel`/
