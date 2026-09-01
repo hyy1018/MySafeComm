@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -25,13 +26,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,9 +52,14 @@ import coil3.compose.AsyncImage
 import com.example.asgm.data.MainHubData
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.data.local.entity.PostEntity
+import com.example.asgm.data.local.entity.UserEntity
 import com.example.asgm.model.MainHubItem
+import com.example.asgm.viewmodel.PostViewModel
+import com.example.asgm.viewmodel.PostViewModelFactory
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,13 +68,17 @@ fun MainHubScreen(
     onNavigate: (String) -> Unit
 ) {
     val context = LocalContext.current
+    val db = remember { AppDatabase.getInstance(context) }
     val userId = UserSession.currentUserId
-    val userViewModel: UserViewModel =
-        viewModel(factory = UserViewModelFactory(AppDatabase.getInstance(context).userDao()))
+    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
+    val postViewModel: PostViewModel = viewModel(factory = PostViewModelFactory(db.postDao()))
     val users by userViewModel.users.collectAsState()
     val currentUser = users.find { it.id == userId }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("My Safe Community") },
@@ -128,10 +144,87 @@ fun MainHubScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.size(8.dp))
+            QuickPostCard(
+                currentUser = currentUser,
+                onPost = { content ->
+                    scope.launch {
+                        postViewModel.submit(
+                            PostEntity(userId = UserSession.requireUserId(), content = content)
+                        )
+                        snackbarHostState.showSnackbar("Posted to Community Feed")
+                    }
+                }
+            )
+            Spacer(Modifier.size(8.dp))
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(MainHubData.modules, key = { it.id }) { module ->
                     MainHubModuleCard(module = module, onClick = { onNavigate(module.route) })
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Instagram/Facebook-style quick-post bar: type straight into it and tap Send to post to the
+ * Community Feed without leaving Main Hub. Text-only -- adding a photo still goes through the
+ * full New Post screen (Community Feed's FAB), so this stays a one-line shortcut, not a second
+ * copy of that form.
+ */
+@Composable
+private fun QuickPostCard(currentUser: UserEntity?, onPost: (String) -> Unit) {
+    var text by remember { mutableStateOf("") }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                val avatarUri = currentUser?.avatarUri
+                if (avatarUri != null) {
+                    AsyncImage(
+                        model = avatarUri,
+                        contentDescription = "Your avatar",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        Icons.Filled.AccountCircle,
+                        contentDescription = "Your avatar",
+                        modifier = Modifier.fillMaxSize(),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(Modifier.width(8.dp))
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text("What's happening in your community?") },
+                singleLine = true,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(
+                onClick = {
+                    val content = text.trim()
+                    if (content.isNotEmpty()) {
+                        onPost(content)
+                        text = ""
+                    }
+                },
+                enabled = text.isNotBlank()
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Post")
             }
         }
     }
