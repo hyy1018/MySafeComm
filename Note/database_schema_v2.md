@@ -20,7 +20,7 @@ Reddit/Facebook-style feed: users upload posts, comment, and like; admin can edi
 | Table | Key Fields | Purpose |
 |---|---|---|
 | Posts | PostID (PK), UserID (FK → Users.Id), Content, ImageURL, Timestamp, IsEdited, EditedByAdminID (FK → Users.Id, nullable) | User-uploaded posts; tracks if/who (admin) last edited a post |
-| Comments | CommentID (PK), PostID (FK → Posts.PostID), UserID (FK → Users.Id), Content, Timestamp | Comments on a post |
+| Comments | CommentID (PK), PostID (FK → Posts.PostID), UserID (FK → Users.Id), Content, Timestamp, ParentCommentID (FK → Comments.CommentID, nullable, self-referencing) | Comments on a post; ParentCommentID null = top-level, set = an IG-style reply to that comment (one level deep only) |
 | Likes | LikeID (PK), PostID (FK → Posts.PostID), UserID (FK → Users.Id), Timestamp | Like records; unique constraint on (PostID, UserID) to prevent duplicate likes and allow like-count queries |
 
 ### Relationships
@@ -40,6 +40,15 @@ back to Posts and filter `userId != postOwnerId`). No new table: unread state is
 `Users.LastSeenActivityAt` compared against each like/comment's timestamp
 (`PostDao.getUnseenActivityCount`), and opening the screen stamps it to "now". A red badge
 shows the unseen count on both the heart icon and the bottom nav's Community tab.
+
+### Comment replies (Instagram-style, one level deep)
+
+`PostDetailScreen` groups a post's comments into top-level (`parentCommentId == null`) and
+replies (grouped by their parent's id), showing each top-level comment followed by its replies
+indented beneath it. Tapping "Reply" under a top-level comment (not offered on a reply itself --
+no reply-to-a-reply) sets which comment you're replying to; the bottom bar shows "Replying to
+&lt;name&gt;" with a cancel button, and sending calls
+`PostDetailViewModel.addComment(userId, content, parentCommentId)`.
 
 ## Navigation Update
 
@@ -157,9 +166,10 @@ called out as acceptable if real-time is hard: pulling in a message that only ex
 because it was sent from a different device/install (`MessageViewModel.refreshFromCloud`).
 
 Unread badge: `Users.LastSeenMessagesAt` (same shape as `LastSeenActivityAt`) compared against
-each message's timestamp via `MessageDao.getUnseenMessageCount`, stamped to "now" when
-`MessagesInboxScreen` opens. Currently only wired onto Admin Hub's "Messages" card, since that's
-where the brief asked for it -- residents' "My Messages" doesn't show one yet.
+each message's timestamp via `MessageDao.getUnseenMessageCount`. Wired onto Admin Hub's "Messages"
+card (stamped "now" when `MessagesInboxScreen` opens) and, for residents, onto Community Feed's
+People icon -- stamped "now" when `MembersScreen` opens instead, since that's where a resident
+actually reaches per-person chat (mirrors the heart icon/`ActivityScreen` pairing above exactly).
 
 ## Architecture: ViewModel + StateFlow, and Supabase as a second data store
 

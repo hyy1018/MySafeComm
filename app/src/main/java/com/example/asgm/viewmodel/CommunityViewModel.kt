@@ -87,8 +87,13 @@ class PostDetailViewModel(
     val likeCount: StateFlow<Int> = likeDao.getLikeCount(postId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    fun addComment(userId: String, content: String) = viewModelScope.launch {
-        val comment = CommentEntity(postId = postId, userId = userId, content = content)
+    fun addComment(userId: String, content: String, parentCommentId: Long? = null) = viewModelScope.launch {
+        val comment = CommentEntity(
+            postId = postId,
+            userId = userId,
+            content = content,
+            parentCommentId = parentCommentId
+        )
         val newId = commentDao.insert(comment)
         if (isSupabaseConfigured) {
             try {

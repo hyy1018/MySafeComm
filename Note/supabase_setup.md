@@ -100,7 +100,8 @@ create table if not exists comments (
   "postId" bigint not null references posts("postId") on delete cascade,
   "userId" text not null references users(id) on delete cascade,
   content text not null,
-  timestamp bigint not null
+  timestamp bigint not null,
+  "parentCommentId" bigint references comments("commentId") on delete cascade
 );
 
 create table if not exists likes (
@@ -119,8 +120,9 @@ create table if not exists messages (
 );
 
 -- Columns added to an EXISTING table need their own statement -- "create table if not exists"
--- only skips table creation, it won't add a missing column to a users table you already made.
+-- only skips table creation, it won't add a missing column to a table you already made.
 alter table users add column if not exists "lastSeenMessagesAt" bigint not null default 0;
+alter table comments add column if not exists "parentCommentId" bigint references comments("commentId") on delete cascade;
 
 alter table users disable row level security;
 alter table alerts disable row level security;

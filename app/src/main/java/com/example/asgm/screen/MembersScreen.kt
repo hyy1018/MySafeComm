@@ -29,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -65,6 +66,13 @@ fun MembersScreen(navController: NavHostController) {
     val members = remember(users, currentUserId) {
         val (me, others) = users.partition { it.id == currentUserId }
         me + others
+    }
+
+    // Members is where a resident actually reaches per-person chat, so opening it clears the
+    // unread-messages badge on Community Feed's People icon -- same pattern as ActivityScreen
+    // stamping lastSeenActivityAt for the heart-icon badge.
+    LaunchedEffect(currentUserId) {
+        currentUserId?.let { userViewModel.updateLastSeenMessages(it, System.currentTimeMillis()) }
     }
 
     Scaffold(

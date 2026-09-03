@@ -31,5 +31,8 @@ data class CommentEntity(
     val postId: Long,
     val userId: String,
     val content: String,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    /** Null for a top-level comment; set to the parent's commentId for an IG-style reply.
+     * One level deep only -- a reply can't itself be replied to. */
+    val parentCommentId: Long? = null
 )

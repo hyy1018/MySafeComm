@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
@@ -93,6 +94,10 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
     var showDeletePostConfirm by remember { mutableStateOf(false) }
     var commentPendingDelete by remember { mutableStateOf<CommentEntity?>(null) }
     var editedContent by remember { mutableStateOf<String?>(null) }
+    var replyingTo by remember { mutableStateOf<CommentEntity?>(null) }
+
+    val topLevelComments = comments.filter { it.parentCommentId == null }
+    val repliesByParent = comments.filter { it.parentCommentId != null }.groupBy { it.parentCommentId }
 
     val isOwnPost = post?.userId == UserSession.currentUserId
     val isAdmin = UserSession.currentUserRole == UserRole.ADMIN
@@ -124,29 +129,55 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
             )
         },
         bottomBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = commentText,
-                    onValueChange = { commentText = it },
-                    placeholder = { Text("Add a comment...") },
-                    singleLine = true,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(
-                    onClick = {
-                        val text = commentText.trim()
-                        if (text.isNotEmpty()) {
-                            detailViewModel.addComment(UserSession.requireUserId(), text)
-                            commentText = ""
+            Column(modifier = Modifier.fillMaxWidth()) {
+                replyingTo?.let { target ->
+                    val targetName = users.find { it.id == target.userId }?.name ?: target.userId
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Replying to $targetName",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = { replyingTo = null }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Cancel reply")
                         }
                     }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send comment")
+                    OutlinedTextField(
+                        value = commentText,
+                        onValueChange = { commentText = it },
+                        placeholder = { Text(if (replyingTo != null) "Add a reply..." else "Add a comment...") },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(
+                        onClick = {
+                            val text = commentText.trim()
+                            if (text.isNotEmpty()) {
+                                detailViewModel.addComment(
+                                    UserSession.requireUserId(),
+                                    text,
+                                    parentCommentId = replyingTo?.commentId
+                                )
+                                commentText = ""
+                                replyingTo = null
+                            }
+                        }
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send comment")
+                    }
                 }
             }
         }
@@ -209,14 +240,29 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                         Text("Comments", style = MaterialTheme.typography.titleSmall)
                     }
                 }
-                items(comments, key = { it.commentId }) { comment ->
-                    CommentRow(
-                        comment = comment,
-                        authorName = users.find { it.id == comment.userId }?.name ?: comment.userId,
-                        canDelete = canManage,
-                        onDelete = { commentPendingDelete = comment },
-                        onAuthorClick = { navController.navigate("profile/${comment.userId}") }
-                    )
+                items(topLevelComments, key = { it.commentId }) { comment ->
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        CommentRow(
+                            comment = comment,
+                            authorName = users.find { it.id == comment.userId }?.name ?: comment.userId,
+                            canDelete = canManage,
+                            onDelete = { commentPendingDelete = comment },
+                            onAuthorClick = { navController.navigate("profile/${comment.userId}") },
+                            onReply = { replyingTo = comment }
+                        )
+                        repliesByParent[comment.commentId]?.forEach { reply ->
+                            Box(modifier = Modifier.padding(start = 32.dp)) {
+                                CommentRow(
+                                    comment = reply,
+                                    authorName = users.find { it.id == reply.userId }?.name ?: reply.userId,
+                                    canDelete = canManage,
+                                    onDelete = { commentPendingDelete = reply },
+                                    onAuthorClick = { navController.navigate("profile/${reply.userId}") },
+                                    onReply = null
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -293,7 +339,8 @@ private fun CommentRow(
     authorName: String,
     canDelete: Boolean,
     onDelete: () -> Unit,
-    onAuthorClick: () -> Unit
+    onAuthorClick: () -> Unit,
+    onReply: (() -> Unit)?
 ) {
     Row(verticalAlignment = Alignment.Top) {
         Column(modifier = Modifier.weight(1f)) {
@@ -303,6 +350,14 @@ private fun CommentRow(
                 modifier = Modifier.clickable(onClick = onAuthorClick)
             )
             Text(comment.content, style = MaterialTheme.typography.bodyMedium)
+            if (onReply != null) {
+                Text(
+                    "Reply",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.clickable(onClick = onReply)
+                )
+            }
         }
         if (canDelete) {
             IconButton(onClick = onDelete) {

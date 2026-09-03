@@ -80,6 +80,15 @@ fun CommunityFeedScreen(navController: NavHostController) {
             emptyFlow()
         }
     ).collectAsState(initial = 0)
+    // Same reasoning: unread direct messages (from other residents or an admin's reply), badged
+    // on the People icon since that's the entry point to Members and its per-person chat.
+    val unseenMessageCount by (
+        if (userId != null) {
+            db.messageDao().getUnseenMessageCount(userId, currentUser?.lastSeenMessagesAt ?: 0)
+        } else {
+            emptyFlow()
+        }
+    ).collectAsState(initial = 0)
 
     Scaffold(
         topBar = {
@@ -101,7 +110,13 @@ fun CommunityFeedScreen(navController: NavHostController) {
                         }
                     }
                     IconButton(onClick = { navController.navigate("members") }) {
-                        Icon(Icons.Filled.People, contentDescription = "Community Members")
+                        if (unseenMessageCount > 0) {
+                            BadgedBox(badge = { Badge { Text("$unseenMessageCount") } }) {
+                                Icon(Icons.Filled.People, contentDescription = "Community Members")
+                            }
+                        } else {
+                            Icon(Icons.Filled.People, contentDescription = "Community Members")
+                        }
                     }
                 }
             )

@@ -40,7 +40,7 @@ import com.example.asgm.data.local.entity.UserEntity
         LikeEntity::class,
         MessageEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
