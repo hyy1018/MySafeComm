@@ -83,7 +83,8 @@ fun MyReportsScreen(navController: NavHostController) {
             ) {
                 Text(
                     "No reports yet. Tap Report to submit a hazard.",
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp)
                 )
             }
         } else {

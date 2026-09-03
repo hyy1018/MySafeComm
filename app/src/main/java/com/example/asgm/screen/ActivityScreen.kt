@@ -112,7 +112,8 @@ fun ActivityScreen(navController: NavHostController) {
             ) {
                 Text(
                     "No activity yet. Likes and comments on your posts will show up here.",
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp)
                 )
             }
         } else {

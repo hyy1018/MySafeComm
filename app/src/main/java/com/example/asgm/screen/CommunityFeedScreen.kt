@@ -141,7 +141,8 @@ fun CommunityFeedScreen(navController: NavHostController) {
             ) {
                 Text(
                     "No posts yet. Tap + to share something with your neighbours.",
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp)
                 )
             }
         } else {
