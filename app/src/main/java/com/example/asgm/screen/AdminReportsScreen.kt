@@ -1,6 +1,6 @@
 // #member2
-// Admin screen listing every hazard report. Admin can read the text, see the photo, and move
-// the status (which auto-notifies the reporter) -- but not edit the report itself.
+// Admin screen listing every hazard report. Admin can read the text, see the photo (tap to
+// enlarge), and move the status (which auto-notifies the reporter) -- but not edit the report.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -34,13 +34,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportEntity
@@ -139,15 +137,13 @@ private fun AdminReportCard(
             )
             Text(report.description, style = MaterialTheme.typography.bodyMedium)
             report.photoUri?.let { uri ->
-                // Fit, not Crop -- the admin should see the whole photo, not a cropped centre.
-                AsyncImage(
-                    model = uri,
-                    contentDescription = "Report photo",
+                ZoomablePhoto(
+                    uri = uri,
+                    contentDescription = "Report photo (tap to enlarge)",
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(220.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Fit
+                        .clip(RoundedCornerShape(8.dp))
                 )
             }
             Text(

@@ -48,7 +48,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.PostEntity
@@ -214,9 +213,9 @@ private fun PostCard(
                 overflow = TextOverflow.Ellipsis
             )
             post.imageUri?.let { uri ->
-                AsyncImage(
-                    model = uri,
-                    contentDescription = null,
+                ZoomablePhoto(
+                    uri = uri,
+                    contentDescription = "Post photo (tap to enlarge)",
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp)),
