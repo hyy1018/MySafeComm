@@ -1,9 +1,8 @@
 // #member2
-// Admin screen listing every hazard report: tap a card for the full detail (photo included),
-// or use the status chips to move it and auto-notify the reporter.
+// Admin screen listing every hazard report. Admin can read the text, see the photo, and move
+// the status (which auto-notifies the reporter) -- but not edit the report itself.
 package com.example.asgm.screen
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -100,8 +99,7 @@ fun AdminReportsScreen(navController: NavHostController) {
                         report = report,
                         reporterName = reporterName,
                         viewModel = reportViewModel,
-                        messageViewModel = messageViewModel,
-                        onOpen = { navController.navigate("report_detail/${report.reportId}") }
+                        messageViewModel = messageViewModel
                     )
                 }
             }
@@ -126,14 +124,9 @@ private fun AdminReportCard(
     report: ReportEntity,
     reporterName: String,
     viewModel: ReportViewModel,
-    messageViewModel: MessageViewModel,
-    onOpen: () -> Unit
+    messageViewModel: MessageViewModel
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onOpen)
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -146,14 +139,15 @@ private fun AdminReportCard(
             )
             Text(report.description, style = MaterialTheme.typography.bodyMedium)
             report.photoUri?.let { uri ->
+                // Fit, not Crop -- the admin should see the whole photo, not a cropped centre.
                 AsyncImage(
                     model = uri,
                     contentDescription = "Report photo",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp)
+                        .height(220.dp)
                         .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Fit
                 )
             }
             Text(
