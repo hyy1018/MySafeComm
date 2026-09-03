@@ -10,10 +10,12 @@ import com.example.asgm.data.local.entity.UserEntity
 import com.example.asgm.data.remote.isSupabaseConfigured
 import com.example.asgm.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class UserViewModel(private val dao: UserDao) : ViewModel() {
 
@@ -39,10 +41,12 @@ class UserViewModel(private val dao: UserDao) : ViewModel() {
         dao.updateLastSeenActivity(userId, timestamp)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("users").update({
-                    set("lastSeenActivityAt", timestamp)
-                }) {
-                    filter { eq("id", userId) }
+                withContext(Dispatchers.IO) {
+                    supabase.from("users").update({
+                        set("lastSeenActivityAt", timestamp)
+                    }) {
+                        filter { eq("id", userId) }
+                    }
                 }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
@@ -54,10 +58,12 @@ class UserViewModel(private val dao: UserDao) : ViewModel() {
         dao.updateLastSeenMessages(userId, timestamp)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("users").update({
-                    set("lastSeenMessagesAt", timestamp)
-                }) {
-                    filter { eq("id", userId) }
+                withContext(Dispatchers.IO) {
+                    supabase.from("users").update({
+                        set("lastSeenMessagesAt", timestamp)
+                    }) {
+                        filter { eq("id", userId) }
+                    }
                 }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
@@ -105,7 +111,9 @@ class UserDetailViewModelFactory(
 private suspend fun pushInsertToCloud(user: UserEntity) {
     if (isSupabaseConfigured) {
         try {
-            supabase.from("users").insert(user)
+            withContext(Dispatchers.IO) {
+                supabase.from("users").insert(user)
+            }
         } catch (e: Exception) {
             // Cloud copy failed -- local Room copy already saved.
         }
@@ -115,18 +123,20 @@ private suspend fun pushInsertToCloud(user: UserEntity) {
 private suspend fun pushUpdateToCloud(user: UserEntity) {
     if (isSupabaseConfigured) {
         try {
-            supabase.from("users").update({
-                set("password", user.password)
-                set("name", user.name)
-                set("role", user.role.name)
-                set("phone", user.phone)
-                set("address", user.address)
-                set("email", user.email)
-                set("avatarUri", user.avatarUri)
-                set("lastSeenActivityAt", user.lastSeenActivityAt)
-                set("lastSeenMessagesAt", user.lastSeenMessagesAt)
-            }) {
-                filter { eq("id", user.id) }
+            withContext(Dispatchers.IO) {
+                supabase.from("users").update({
+                    set("password", user.password)
+                    set("name", user.name)
+                    set("role", user.role.name)
+                    set("phone", user.phone)
+                    set("address", user.address)
+                    set("email", user.email)
+                    set("avatarUri", user.avatarUri)
+                    set("lastSeenActivityAt", user.lastSeenActivityAt)
+                    set("lastSeenMessagesAt", user.lastSeenMessagesAt)
+                }) {
+                    filter { eq("id", user.id) }
+                }
             }
         } catch (e: Exception) {
             // Cloud copy failed -- local Room copy already saved.

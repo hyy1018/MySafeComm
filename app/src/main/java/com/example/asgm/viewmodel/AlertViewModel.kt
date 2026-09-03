@@ -11,10 +11,12 @@ import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.remote.isSupabaseConfigured
 import com.example.asgm.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AlertViewModel(private val dao: AlertDao) : ViewModel() {
 
@@ -25,7 +27,9 @@ class AlertViewModel(private val dao: AlertDao) : ViewModel() {
         val newId = dao.insert(alert)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("alerts").insert(alert.copy(alertId = newId))
+                withContext(Dispatchers.IO) {
+                    supabase.from("alerts").insert(alert.copy(alertId = newId))
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
             }
@@ -36,14 +40,16 @@ class AlertViewModel(private val dao: AlertDao) : ViewModel() {
         dao.update(alert)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("alerts").update({
-                    set("title", alert.title)
-                    set("body", alert.body)
-                    set("priority", alert.priority.name)
-                    set("location", alert.location)
-                    set("issuedBy", alert.issuedBy)
-                }) {
-                    filter { eq("alertId", alert.alertId) }
+                withContext(Dispatchers.IO) {
+                    supabase.from("alerts").update({
+                        set("title", alert.title)
+                        set("body", alert.body)
+                        set("priority", alert.priority.name)
+                        set("location", alert.location)
+                        set("issuedBy", alert.issuedBy)
+                    }) {
+                        filter { eq("alertId", alert.alertId) }
+                    }
                 }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
@@ -55,7 +61,9 @@ class AlertViewModel(private val dao: AlertDao) : ViewModel() {
         dao.delete(alert)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("alerts").delete { filter { eq("alertId", alert.alertId) } }
+                withContext(Dispatchers.IO) {
+                    supabase.from("alerts").delete { filter { eq("alertId", alert.alertId) } }
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already deleted.
             }
@@ -107,7 +115,9 @@ class AlertAckViewModel(
         dao.acknowledge(ack)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("alert_acknowledgements").insert(ack)
+                withContext(Dispatchers.IO) {
+                    supabase.from("alert_acknowledgements").insert(ack)
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
             }

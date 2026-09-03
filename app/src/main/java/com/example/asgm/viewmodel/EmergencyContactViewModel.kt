@@ -9,10 +9,12 @@ import com.example.asgm.data.local.entity.EmergencyContactEntity
 import com.example.asgm.data.remote.isSupabaseConfigured
 import com.example.asgm.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class EmergencyContactViewModel(private val dao: EmergencyContactDao) : ViewModel() {
 
@@ -24,7 +26,9 @@ class EmergencyContactViewModel(private val dao: EmergencyContactDao) : ViewMode
         // same id as the local row, so both stores stay in sync
         if (isSupabaseConfigured) {
             try {
-                supabase.from("emergency_contacts").insert(contact.copy(serviceId = newId))
+                withContext(Dispatchers.IO) {
+                    supabase.from("emergency_contacts").insert(contact.copy(serviceId = newId))
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local copy already succeeded.
             }

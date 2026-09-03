@@ -9,10 +9,12 @@ import com.example.asgm.data.local.entity.MessageEntity
 import com.example.asgm.data.remote.isSupabaseConfigured
 import com.example.asgm.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MessageViewModel(private val dao: MessageDao) : ViewModel() {
 
@@ -21,7 +23,9 @@ class MessageViewModel(private val dao: MessageDao) : ViewModel() {
         val newId = dao.insert(message)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("messages").insert(message.copy(messageId = newId))
+                withContext(Dispatchers.IO) {
+                    supabase.from("messages").insert(message.copy(messageId = newId))
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
             }
@@ -33,13 +37,15 @@ class MessageViewModel(private val dao: MessageDao) : ViewModel() {
     fun refreshFromCloud(userId: String) = viewModelScope.launch {
         if (!isSupabaseConfigured) return@launch
         try {
-            val sent = supabase.from("messages")
-                .select { filter { eq("fromUserId", userId) } }
-                .decodeList<MessageEntity>()
-            val received = supabase.from("messages")
-                .select { filter { eq("toUserId", userId) } }
-                .decodeList<MessageEntity>()
-            dao.insertAll(sent + received)
+            withContext(Dispatchers.IO) {
+                val sent = supabase.from("messages")
+                    .select { filter { eq("fromUserId", userId) } }
+                    .decodeList<MessageEntity>()
+                val received = supabase.from("messages")
+                    .select { filter { eq("toUserId", userId) } }
+                    .decodeList<MessageEntity>()
+                dao.insertAll(sent + received)
+            }
         } catch (e: Exception) {
             // Offline, or not configured yet -- local data just stays as it is.
         }

@@ -9,10 +9,12 @@ import com.example.asgm.data.local.entity.SafetyGuideEntity
 import com.example.asgm.data.remote.isSupabaseConfigured
 import com.example.asgm.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SafetyGuideViewModel(private val dao: SafetyGuideDao) : ViewModel() {
 
@@ -23,7 +25,9 @@ class SafetyGuideViewModel(private val dao: SafetyGuideDao) : ViewModel() {
         val newId = dao.insert(guide)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("safety_guides").insert(guide.copy(guideId = newId))
+                withContext(Dispatchers.IO) {
+                    supabase.from("safety_guides").insert(guide.copy(guideId = newId))
+                }
             } catch (e: Exception) {
                 // Cloud copy failed (offline / credentials not set yet) -- local Room copy already saved.
             }

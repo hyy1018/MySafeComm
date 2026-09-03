@@ -13,10 +13,12 @@ import com.example.asgm.data.local.entity.PostEntity
 import com.example.asgm.data.remote.isSupabaseConfigured
 import com.example.asgm.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // Backs the Community Feed post list, new-post submission, and Admin's post editing.
 class PostViewModel(private val dao: PostDao) : ViewModel() {
@@ -29,7 +31,9 @@ class PostViewModel(private val dao: PostDao) : ViewModel() {
         val newId = dao.insert(post)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("posts").insert(post.copy(postId = newId))
+                withContext(Dispatchers.IO) {
+                    supabase.from("posts").insert(post.copy(postId = newId))
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
             }
@@ -41,12 +45,14 @@ class PostViewModel(private val dao: PostDao) : ViewModel() {
         dao.editByAdmin(postId, content, adminId)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("posts").update({
-                    set("content", content)
-                    set("isEdited", true)
-                    set("editedByAdminId", adminId)
-                }) {
-                    filter { eq("postId", postId) }
+                withContext(Dispatchers.IO) {
+                    supabase.from("posts").update({
+                        set("content", content)
+                        set("isEdited", true)
+                        set("editedByAdminId", adminId)
+                    }) {
+                        filter { eq("postId", postId) }
+                    }
                 }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
@@ -93,7 +99,9 @@ class PostDetailViewModel(
         val newId = commentDao.insert(comment)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("comments").insert(comment.copy(commentId = newId))
+                withContext(Dispatchers.IO) {
+                    supabase.from("comments").insert(comment.copy(commentId = newId))
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
             }
@@ -104,7 +112,9 @@ class PostDetailViewModel(
         commentDao.delete(comment)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("comments").delete { filter { eq("commentId", comment.commentId) } }
+                withContext(Dispatchers.IO) {
+                    supabase.from("comments").delete { filter { eq("commentId", comment.commentId) } }
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already deleted.
             }
@@ -115,7 +125,9 @@ class PostDetailViewModel(
         postDao.delete(post)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("posts").delete { filter { eq("postId", post.postId) } }
+                withContext(Dispatchers.IO) {
+                    supabase.from("posts").delete { filter { eq("postId", post.postId) } }
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already deleted.
             }
@@ -127,7 +139,9 @@ class PostDetailViewModel(
         likeDao.like(like)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("likes").insert(like)
+                withContext(Dispatchers.IO) {
+                    supabase.from("likes").insert(like)
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
             }
@@ -138,10 +152,12 @@ class PostDetailViewModel(
         likeDao.unlike(postId, userId)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("likes").delete {
-                    filter {
-                        eq("postId", postId)
-                        eq("userId", userId)
+                withContext(Dispatchers.IO) {
+                    supabase.from("likes").delete {
+                        filter {
+                            eq("postId", postId)
+                            eq("userId", userId)
+                        }
                     }
                 }
             } catch (e: Exception) {

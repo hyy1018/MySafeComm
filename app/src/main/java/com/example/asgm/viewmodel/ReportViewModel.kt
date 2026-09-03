@@ -10,10 +10,12 @@ import com.example.asgm.data.local.entity.ReportStatus
 import com.example.asgm.data.remote.isSupabaseConfigured
 import com.example.asgm.data.remote.supabase
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ReportViewModel(private val dao: ReportDao) : ViewModel() {
 
@@ -25,7 +27,9 @@ class ReportViewModel(private val dao: ReportDao) : ViewModel() {
         val newId = dao.insert(report)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("reports").insert(report.copy(reportId = newId))
+                withContext(Dispatchers.IO) {
+                    supabase.from("reports").insert(report.copy(reportId = newId))
+                }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
             }
@@ -37,10 +41,12 @@ class ReportViewModel(private val dao: ReportDao) : ViewModel() {
         dao.updateStatus(reportId, status)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("reports").update({
-                    set("status", status.name)
-                }) {
-                    filter { eq("reportId", reportId) }
+                withContext(Dispatchers.IO) {
+                    supabase.from("reports").update({
+                        set("status", status.name)
+                    }) {
+                        filter { eq("reportId", reportId) }
+                    }
                 }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
@@ -88,14 +94,16 @@ class ReportDetailViewModel(private val dao: ReportDao, reportId: Long) : ViewMo
         dao.update(report)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("reports").update({
-                    set("title", report.title)
-                    set("location", report.location)
-                    set("description", report.description)
-                    set("photoUri", report.photoUri)
-                    set("status", report.status.name)
-                }) {
-                    filter { eq("reportId", report.reportId) }
+                withContext(Dispatchers.IO) {
+                    supabase.from("reports").update({
+                        set("title", report.title)
+                        set("location", report.location)
+                        set("description", report.description)
+                        set("photoUri", report.photoUri)
+                        set("status", report.status.name)
+                    }) {
+                        filter { eq("reportId", report.reportId) }
+                    }
                 }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already saved.
@@ -107,8 +115,10 @@ class ReportDetailViewModel(private val dao: ReportDao, reportId: Long) : ViewMo
         dao.delete(report)
         if (isSupabaseConfigured) {
             try {
-                supabase.from("reports").delete {
-                    filter { eq("reportId", report.reportId) }
+                withContext(Dispatchers.IO) {
+                    supabase.from("reports").delete {
+                        filter { eq("reportId", report.reportId) }
+                    }
                 }
             } catch (e: Exception) {
                 // Cloud copy failed -- local Room copy already deleted.
