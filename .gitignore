@@ -8,3 +8,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Teacher reference materials (zips/docx) -- kept locally for reading, too large to commit
+Note/*.zip
+Note/*.docx
