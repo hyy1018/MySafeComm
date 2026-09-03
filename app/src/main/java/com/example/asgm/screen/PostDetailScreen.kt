@@ -94,6 +94,8 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
     var commentText by remember { mutableStateOf("") }
     var showDeletePostConfirm by remember { mutableStateOf(false) }
     var commentPendingDelete by remember { mutableStateOf<CommentEntity?>(null) }
+    var commentBeingEdited by remember { mutableStateOf<CommentEntity?>(null) }
+    var commentEditDraft by remember { mutableStateOf("") }
     var editedContent by remember { mutableStateOf<String?>(null) }
     var replyingTo by remember { mutableStateOf<CommentEntity?>(null) }
 
@@ -246,7 +248,9 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                         CommentRow(
                             comment = comment,
                             authorName = users.find { it.id == comment.userId }?.name ?: comment.userId,
+                            canEdit = comment.userId == currentUserId,
                             canDelete = canManage,
+                            onEdit = { commentBeingEdited = comment; commentEditDraft = comment.content },
                             onDelete = { commentPendingDelete = comment },
                             onAuthorClick = { navController.navigate("profile/${comment.userId}") },
                             onReply = { replyingTo = comment }
@@ -256,7 +260,9 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                                 CommentRow(
                                     comment = reply,
                                     authorName = users.find { it.id == reply.userId }?.name ?: reply.userId,
+                                    canEdit = reply.userId == currentUserId,
                                     canDelete = canManage,
+                                    onEdit = { commentBeingEdited = reply; commentEditDraft = reply.content },
                                     onDelete = { commentPendingDelete = reply },
                                     onAuthorClick = { navController.navigate("profile/${reply.userId}") },
                                     onReply = null
@@ -303,6 +309,35 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
             )
         }
 
+        commentBeingEdited?.let { comment ->
+            AlertDialog(
+                onDismissRequest = { commentBeingEdited = null },
+                title = { Text("Edit comment") },
+                text = {
+                    OutlinedTextField(
+                        value = commentEditDraft,
+                        onValueChange = { commentEditDraft = it },
+                        minLines = 2,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val content = commentEditDraft.trim()
+                            if (content.isNotEmpty()) {
+                                detailViewModel.updateComment(comment.copy(content = content))
+                                commentBeingEdited = null
+                            }
+                        }
+                    ) { Text("Save") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { commentBeingEdited = null }) { Text("Cancel") }
+                }
+            )
+        }
+
         editedContent?.let { draft ->
             AlertDialog(
                 onDismissRequest = { editedContent = null },
@@ -338,7 +373,9 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
 private fun CommentRow(
     comment: CommentEntity,
     authorName: String,
+    canEdit: Boolean,
     canDelete: Boolean,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
     onAuthorClick: () -> Unit,
     onReply: (() -> Unit)?
@@ -357,6 +394,17 @@ private fun CommentRow(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clickable(onClick = onReply)
+                )
+            }
+        }
+        // Edit is self-only -- unlike canDelete, the post owner and Admin never get this button
+        // on someone else's comment, only the comment's own author does.
+        if (canEdit) {
+            IconButton(onClick = onEdit) {
+                Icon(
+                    Icons.Filled.Edit,
+                    contentDescription = "Edit comment",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

@@ -6,6 +6,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.example.asgm.data.local.entity.CommentEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -13,6 +14,9 @@ import kotlinx.coroutines.flow.Flow
 interface CommentDao {
     @Insert
     suspend fun insert(comment: CommentEntity): Long
+
+    @Update
+    suspend fun update(comment: CommentEntity)
 
     @Delete
     suspend fun delete(comment: CommentEntity)

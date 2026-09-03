@@ -50,6 +50,12 @@ no reply-to-a-reply) sets which comment you're replying to; the bottom bar shows
 &lt;name&gt;" with a cancel button, and sending calls
 `PostDetailViewModel.addComment(userId, content, parentCommentId)`.
 
+Editing a comment's text is self-only: `CommentRow`'s `canEdit` is strictly
+`comment.userId == currentUserId`, separate from `canDelete` (post owner or Admin). So the post
+owner and Admin can still delete someone else's comment, but can never edit its wording -- only
+the person who wrote it can. `PostDetailViewModel.updateComment` does the Room update plus the
+matching Supabase `update()`, same dual-write shape as every other edit in the app.
+
 ## Navigation Update
 
 Main Hub has four top-level entries: Report, Alert, Community Feed, and SOS.

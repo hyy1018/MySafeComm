@@ -109,6 +109,25 @@ class PostDetailViewModel(
         }
     }
 
+    // Self-edit only -- the caller (PostDetailScreen) only ever offers this on the comment's
+    // own author, never to the post owner or Admin, unlike deleteComment below.
+    fun updateComment(comment: CommentEntity) = viewModelScope.launch {
+        commentDao.update(comment)
+        if (isSupabaseConfigured) {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("comments").update({
+                        set("content", comment.content)
+                    }) {
+                        filter { eq("commentId", comment.commentId) }
+                    }
+                }
+            } catch (e: Exception) {
+                // Cloud copy failed -- local Room copy already saved.
+            }
+        }
+    }
+
     fun deleteComment(comment: CommentEntity) = viewModelScope.launch {
         commentDao.delete(comment)
         if (isSupabaseConfigured) {
