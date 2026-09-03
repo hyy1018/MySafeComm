@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -98,7 +99,7 @@ fun AlertScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No alerts right now.")
+                Text("No alerts right now.", textAlign = TextAlign.Center)
             }
         } else {
             LazyColumn(
@@ -132,8 +133,13 @@ private fun AlertCard(
     // Nullable, not requireUserId(): see MyReportsScreen for why -- this must not throw during
     // a transient no-session composition (process death restoring the back stack).
     val userId = UserSession.currentUserId
+    // key per alert -- without it every card in the list shares one ViewModel (bound to the
+    // first alert), so cards showed the wrong acknowledged state and the badge stayed out of sync
     val ackViewModel: AlertAckViewModel? = if (userId != null) {
-        viewModel(factory = AlertAckViewModelFactory(db.alertAcknowledgementDao(), alert.alertId, userId))
+        viewModel(
+            key = "alert_ack_${alert.alertId}",
+            factory = AlertAckViewModelFactory(db.alertAcknowledgementDao(), alert.alertId, userId)
+        )
     } else {
         null
     }

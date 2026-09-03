@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -83,7 +84,7 @@ fun AdminAlertsScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No alerts yet. Tap + to add one.")
+                Text("No alerts yet. Tap + to add one.", textAlign = TextAlign.Center)
             }
         } else {
             LazyColumn(

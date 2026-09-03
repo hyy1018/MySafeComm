@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class ReportStatus {
-    PENDING, IN_PROGRESS, SOLVED
+    PENDING, IN_PROGRESS, SOLVED, REJECTED
 }
 
 @Serializable

@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -109,7 +110,10 @@ fun ActivityScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No activity yet. Likes and comments on your posts will show up here.")
+                Text(
+                    "No activity yet. Likes and comments on your posts will show up here.",
+                    textAlign = TextAlign.Center
+                )
             }
         } else {
             LazyColumn(

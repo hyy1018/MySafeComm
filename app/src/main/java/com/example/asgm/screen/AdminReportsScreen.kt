@@ -1,17 +1,22 @@
 // #member2
-// Admin screen listing every hazard report with a status control.
+// Admin screen listing every hazard report: tap a card for the full detail (photo included),
+// or use the status chips to move it and auto-notify the reporter.
 package com.example.asgm.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
@@ -29,10 +34,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportEntity
@@ -77,7 +86,7 @@ fun AdminReportsScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No reports submitted yet.")
+                Text("No reports submitted yet.", textAlign = TextAlign.Center)
             }
         } else {
             LazyColumn(
@@ -87,7 +96,13 @@ fun AdminReportsScreen(navController: NavHostController) {
             ) {
                 items(reports, key = { it.reportId }) { report ->
                     val reporterName = users.find { it.id == report.userId }?.name ?: report.userId
-                    AdminReportCard(report, reporterName, reportViewModel, messageViewModel)
+                    AdminReportCard(
+                        report = report,
+                        reporterName = reporterName,
+                        viewModel = reportViewModel,
+                        messageViewModel = messageViewModel,
+                        onOpen = { navController.navigate("report_detail/${report.reportId}") }
+                    )
                 }
             }
         }
@@ -100,18 +115,25 @@ private fun reportStatusMessage(reportTitle: String, status: ReportStatus): Stri
         ReportStatus.PENDING -> "Pending"
         ReportStatus.IN_PROGRESS -> "In Progress"
         ReportStatus.SOLVED -> "Solved"
+        ReportStatus.REJECTED -> "Rejected"
     }
     return "Update on your report \"$reportTitle\": status is now $label."
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun AdminReportCard(
     report: ReportEntity,
     reporterName: String,
     viewModel: ReportViewModel,
-    messageViewModel: MessageViewModel
+    messageViewModel: MessageViewModel,
+    onOpen: () -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpen)
+    ) {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -123,12 +145,23 @@ private fun AdminReportCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(report.description, style = MaterialTheme.typography.bodyMedium)
+            report.photoUri?.let { uri ->
+                AsyncImage(
+                    model = uri,
+                    contentDescription = "Report photo",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
             Text(
                 "Reported by $reporterName - ${dateFormat.format(Date(report.timestamp))}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ReportStatus.entries.forEach { status ->
                     FilterChip(
                         selected = report.status == status,

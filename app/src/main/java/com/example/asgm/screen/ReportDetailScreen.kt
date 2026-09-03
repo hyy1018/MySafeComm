@@ -40,6 +40,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,10 +51,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import com.example.asgm.data.copyImageToAppStorage
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportStatus
 import com.example.asgm.viewmodel.ReportDetailViewModel
 import com.example.asgm.viewmodel.ReportDetailViewModelFactory
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +65,7 @@ fun ReportDetailScreen(reportId: Long, navController: NavHostController) {
     val db = remember { AppDatabase.getInstance(context) }
     val viewModel: ReportDetailViewModel =
         viewModel(factory = ReportDetailViewModelFactory(db.reportDao(), reportId))
+    val scope = rememberCoroutineScope()
 
     val report by viewModel.report.collectAsState()
 
@@ -189,15 +193,23 @@ fun ReportDetailScreen(reportId: Long, navController: NavHostController) {
 
                 Button(
                     onClick = {
-                        viewModel.update(
-                            currentReport.copy(
-                                title = title.trim(),
-                                location = location.trim(),
-                                description = description.trim(),
-                                photoUri = photoUri?.toString()
+                        scope.launch {
+                            // a freshly picked photo is a content:// uri that dies with the app --
+                            // copy it into app storage; an existing file:// one is already safe
+                            val stored = photoUri?.let {
+                                if (it.scheme == "file") it.toString()
+                                else copyImageToAppStorage(context, it)
+                            }
+                            viewModel.update(
+                                currentReport.copy(
+                                    title = title.trim(),
+                                    location = location.trim(),
+                                    description = description.trim(),
+                                    photoUri = stored
+                                )
                             )
-                        )
-                        navController.popBackStack()
+                            navController.popBackStack()
+                        }
                     },
                     enabled = title.isNotBlank() && location.isNotBlank() && description.isNotBlank(),
                     modifier = Modifier.fillMaxWidth()
@@ -244,6 +256,11 @@ private fun StatusBadge(status: ReportStatus) {
             "SOLVED",
             MaterialTheme.colorScheme.secondaryContainer,
             MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        ReportStatus.REJECTED -> Triple(
+            "REJECTED",
+            MaterialTheme.colorScheme.errorContainer,
+            MaterialTheme.colorScheme.onErrorContainer
         )
     }
     Text(

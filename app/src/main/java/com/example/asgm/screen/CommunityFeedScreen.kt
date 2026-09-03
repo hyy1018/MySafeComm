@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -138,7 +139,10 @@ fun CommunityFeedScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No posts yet. Tap + to share something with your neighbours.")
+                Text(
+                    "No posts yet. Tap + to share something with your neighbours.",
+                    textAlign = TextAlign.Center
+                )
             }
         } else {
             LazyColumn(

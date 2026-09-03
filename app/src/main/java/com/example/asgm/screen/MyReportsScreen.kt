@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -80,7 +81,10 @@ fun MyReportsScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No reports yet. Tap Report to submit a hazard.")
+                Text(
+                    "No reports yet. Tap Report to submit a hazard.",
+                    textAlign = TextAlign.Center
+                )
             }
         } else {
             LazyColumn(
@@ -142,6 +146,11 @@ private fun StatusBadge(status: ReportStatus) {
             "SOLVED",
             MaterialTheme.colorScheme.secondaryContainer,
             MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        ReportStatus.REJECTED -> Triple(
+            "REJECTED",
+            MaterialTheme.colorScheme.errorContainer,
+            MaterialTheme.colorScheme.onErrorContainer
         )
     }
     Text(

@@ -49,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
+import com.example.asgm.data.copyImageToAppStorage
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportEntity
 import com.example.asgm.viewmodel.ReportViewModel
@@ -167,13 +168,15 @@ fun ReportHazardScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     scope.launch {
+                        // copy the picked photo into app storage so the admin still sees it later
+                        val storedPhoto = photoUri?.let { copyImageToAppStorage(context, it) }
                         reportViewModel.submit(
                             ReportEntity(
                                 userId = UserSession.requireUserId(),
                                 title = title.trim(),
                                 location = location.trim(),
                                 description = description.trim(),
-                                photoUri = photoUri?.toString()
+                                photoUri = storedPhoto
                             )
                         )
                         title = ""
