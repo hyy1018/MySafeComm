@@ -18,12 +18,15 @@ import androidx.navigation.navArgument
 import com.example.asgm.data.UserSession
 import com.example.asgm.screen.ActivityScreen
 import com.example.asgm.screen.AdminAddAdminScreen
+import com.example.asgm.screen.AdminAddContactScreen
+import com.example.asgm.screen.AdminAddGuideScreen
 import com.example.asgm.screen.AdminAlertFormScreen
 import com.example.asgm.screen.AdminAlertsScreen
 import com.example.asgm.screen.AdminHubScreen
 import com.example.asgm.screen.AdminResetPasswordScreen
 import com.example.asgm.screen.AdminPostsScreen
 import com.example.asgm.screen.AdminReportsScreen
+import com.example.asgm.screen.AdminSosScreen
 import com.example.asgm.screen.AdminUsersScreen
 import com.example.asgm.screen.AlertScreen
 import com.example.asgm.screen.ChangePasswordScreen
@@ -133,6 +136,9 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
             AdminAlertFormScreen(alertId = alertId, navController = navController)
         }
         composable("admin_posts") { AdminPostsScreen(navController) }
+        composable("admin_sos") { AdminSosScreen(navController) }
+        composable("admin_add_contact") { AdminAddContactScreen(navController) }
+        composable("admin_add_guide") { AdminAddGuideScreen(navController) }
         composable("admin_users") { AdminUsersScreen(navController) }
         composable("admin_add_admin") { AdminAddAdminScreen(navController) }
         composable("admin_reset_password") { AdminResetPasswordScreen(navController) }

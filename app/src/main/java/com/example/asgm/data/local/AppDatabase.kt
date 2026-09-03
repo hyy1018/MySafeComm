@@ -41,7 +41,7 @@ import com.example.asgm.data.local.entity.UserEntity
         LikeEntity::class,
         MessageEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -89,7 +89,7 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
 
-                    // test1/test2 (resident, abc123456) and admin1/admin2 (admin, 123456) to sign in with.
+                    // test1/test2 (resident) and admin1/admin2 (admin) to sign in with -- all four abc123456.
                     // IMPORTANT: every column here is NOT NULL -- INSERT OR IGNORE silently drops
                     // the whole row if one's missing (no crash, account just never gets created).
                     // Adding a NOT NULL column to UserEntity? Add it here too.
@@ -112,8 +112,8 @@ abstract class AppDatabase : RoomDatabase() {
                     private fun seedTestAccounts(db: SupportSQLiteDatabase) {
                         seedUser(db, "test1", "abc123456", "Test User", "RESIDENT", "0000000000", "test1@example.com")
                         seedUser(db, "test2", "abc123456", "Test User 2", "RESIDENT", "0000000000", "test2@example.com")
-                        seedUser(db, "admin1", "123456", "Demo Admin", "ADMIN", "0000000000", "admin1@example.com")
-                        seedUser(db, "admin2", "123456", "Demo Admin 2", "ADMIN", "0000000000", "admin2@example.com")
+                        seedUser(db, "admin1", "abc123456", "Demo Admin", "ADMIN", "0000000000", "admin1@example.com")
+                        seedUser(db, "admin2", "abc123456", "Demo Admin 2", "ADMIN", "0000000000", "admin2@example.com")
                     }
 
                     // sample notices so Live Alerts isn't empty on first launch

@@ -87,8 +87,8 @@ appear on every install without needing a fresh database):
 |---|---|---|
 | test1 | abc123456 | RESIDENT |
 | test2 | abc123456 | RESIDENT |
-| admin1 | 123456 | ADMIN |
-| admin2 | 123456 | ADMIN |
+| admin1 | abc123456 | ADMIN |
+| admin2 | abc123456 | ADMIN |
 
 "Sign Up" lets anyone self-register a RESIDENT account with just an ID + password (no way to
 self-register as Admin). Passwords everywhere they're set (Sign Up, Admin's Add Admin, Admin's
@@ -103,14 +103,20 @@ designed.
 
 Logging in with an ADMIN-role account routes to `AdminHubScreen` instead of the resident
 `MainHubScreen` — a separate flow, matching the Login nav split in `yay.pdf`, without the
-resident bottom nav bar. Three screens, all built on existing DAO methods (no new tables):
+resident bottom nav bar. All built on existing DAO methods (no new tables):
 
 | Screen | Route | Backs onto |
 |---|---|---|
 | Manage Reports | `admin_reports` | `ReportDao.getAll()` / `.updateStatus()` — status chips (Pending/In Progress/Solved) per report |
 | Manage Alerts | `admin_alerts` + `admin_alert_form?alertId={id}` | `AlertDao` insert/update/delete; one form screen handles both Add (`alertId=-1`) and Edit |
 | Manage Posts | `admin_posts` → `community_post/{postId}` | Browsing list only; tapping a post opens the same `PostDetailScreen` a resident sees for their own post, where Admin gets edit/delete-post/delete-comment (see Community Feed addon module below) |
+| Manage SOS | `admin_sos` + `admin_add_contact` + `admin_add_guide` | `EmergencyContactDao.insert()` / `SafetyGuideDao.insert()` — Add-only forms; a new contact/guide shows up in resident SOS (`EmergencyHubScreen`) and Search immediately, since both already read the same live `Flow` |
 | Messages | `admin_messages` (badge: unseen count) | `MessagesInboxScreen` — see Contact Admin messaging below |
+
+Manage SOS's guide form builds the same `"Title||Description"`-per-line `steps` string the seed
+data uses (one `StepInput` row per step, a "+ Add Step" button appends another, a trash icon
+removes one) — so an admin-added guide renders through `SafetyGuideDetailScreen` identically to
+the 4 seeded ones, no special-casing needed.
 
 ## Profile
 

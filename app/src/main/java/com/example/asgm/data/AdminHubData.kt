@@ -1,7 +1,8 @@
-// The 5 cards shown on the Admin dashboard.
+// The 6 cards shown on the Admin dashboard.
 package com.example.asgm.data
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Emergency
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material.icons.filled.Mail
@@ -31,6 +32,13 @@ object AdminHubData {
             subtitle = "Edit Community Feed posts",
             icon = Icons.Filled.Forum,
             route = "admin_posts"
+        ),
+        MainHubItem(
+            id = "manage_sos",
+            title = "Manage SOS",
+            subtitle = "Add emergency contacts and safety guides",
+            icon = Icons.Filled.Emergency,
+            route = "admin_sos"
         ),
         MainHubItem(
             id = "manage_users",

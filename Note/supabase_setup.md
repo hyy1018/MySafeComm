@@ -139,8 +139,8 @@ alter table messages disable row level security;
 insert into users (id, password, name, role, phone, address, email) values
   ('test1', 'abc123456', 'Test User', 'RESIDENT', '0000000000', '', 'test1@example.com'),
   ('test2', 'abc123456', 'Test User 2', 'RESIDENT', '0000000000', '', 'test2@example.com'),
-  ('admin1', '123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com'),
-  ('admin2', '123456', 'Demo Admin 2', 'ADMIN', '0000000000', '', 'admin2@example.com')
+  ('admin1', 'abc123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com'),
+  ('admin2', 'abc123456', 'Demo Admin 2', 'ADMIN', '0000000000', '', 'admin2@example.com')
 on conflict (id) do nothing;
 
 insert into emergency_contacts ("serviceId", name, "phoneNo", "categoryEmergency") values
@@ -178,8 +178,8 @@ insert into users (id, password, name, role, phone, address, email, "lastSeenAct
 values
   ('test1', 'abc123456', 'Test User', 'RESIDENT', '0000000000', '', 'test1@example.com', 0, 0),
   ('test2', 'abc123456', 'Test User 2', 'RESIDENT', '0000000000', '', 'test2@example.com', 0, 0),
-  ('admin1', '123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com', 0, 0),
-  ('admin2', '123456', 'Demo Admin 2', 'ADMIN', '0000000000', '', 'admin2@example.com', 0, 0)
+  ('admin1', 'abc123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com', 0, 0),
+  ('admin2', 'abc123456', 'Demo Admin 2', 'ADMIN', '0000000000', '', 'admin2@example.com', 0, 0)
 on conflict (id) do update set
   password = excluded.password,
   name = excluded.name,
