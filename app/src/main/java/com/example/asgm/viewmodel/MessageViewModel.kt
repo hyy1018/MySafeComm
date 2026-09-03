@@ -33,6 +33,40 @@ class MessageViewModel(private val dao: MessageDao) : ViewModel() {
         }
     }
 
+    // Self-only: the caller (MessageThreadScreen) only ever shows this action on a message the
+    // signed-in user sent themselves. One shared row per message, so both sides see the edit.
+    fun updateMessage(message: MessageEntity) = viewModelScope.launch {
+        dao.update(message)
+        if (isSupabaseConfigured) {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("messages").update({
+                        set("body", message.body)
+                    }) {
+                        filter { eq("messageId", message.messageId) }
+                    }
+                }
+            } catch (e: Exception) {
+                // Cloud copy failed -- local Room copy already saved.
+            }
+        }
+    }
+
+    // Self-only, same reasoning as updateMessage above. No "delete for me only" -- removing it
+    // here removes it from both people's thread, since there's just the one row.
+    fun deleteMessage(message: MessageEntity) = viewModelScope.launch {
+        dao.delete(message)
+        if (isSupabaseConfigured) {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("messages").delete { filter { eq("messageId", message.messageId) } }
+                }
+            } catch (e: Exception) {
+                // Cloud copy failed -- local Room copy already deleted.
+            }
+        }
+    }
+
     // manual "Refresh" -- Room's Flow already updates live locally, this just pulls in a message
     // that only exists in Supabase because it came from a different device/install
     fun refreshFromCloud(userId: String) = viewModelScope.launch {

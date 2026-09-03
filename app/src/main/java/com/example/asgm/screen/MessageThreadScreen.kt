@@ -10,13 +10,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -68,6 +73,9 @@ fun MessageThreadScreen(myUserId: String, otherUserId: String, navController: Na
     val otherName = users.find { it.id == otherUserId }?.name ?: otherUserId
 
     var reply by remember { mutableStateOf("") }
+    var messagePendingDelete by remember { mutableStateOf<MessageEntity?>(null) }
+    var messageBeingEdited by remember { mutableStateOf<MessageEntity?>(null) }
+    var messageEditDraft by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -124,15 +132,79 @@ fun MessageThreadScreen(myUserId: String, otherUserId: String, navController: Na
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(messages, key = { it.messageId }) { message ->
-                    MessageBubble(message = message, isOwn = message.fromUserId == myUserId)
+                    val isOwn = message.fromUserId == myUserId
+                    MessageBubble(
+                        message = message,
+                        isOwn = isOwn,
+                        // Self-only -- the other person's message never gets these buttons, and
+                        // there's no "delete for me" here: one shared row, so a delete removes it
+                        // from both threads.
+                        onEdit = if (isOwn) {
+                            { messageBeingEdited = message; messageEditDraft = message.body }
+                        } else {
+                            null
+                        },
+                        onDelete = if (isOwn) { { messagePendingDelete = message } } else null
+                    )
                 }
             }
+        }
+
+        messagePendingDelete?.let { message ->
+            AlertDialog(
+                onDismissRequest = { messagePendingDelete = null },
+                title = { Text("Delete message?") },
+                text = { Text("This removes it from both sides of the conversation. This cannot be undone.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        messageViewModel.deleteMessage(message)
+                        messagePendingDelete = null
+                    }) { Text("Delete") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { messagePendingDelete = null }) { Text("Cancel") }
+                }
+            )
+        }
+
+        messageBeingEdited?.let { message ->
+            AlertDialog(
+                onDismissRequest = { messageBeingEdited = null },
+                title = { Text("Edit message") },
+                text = {
+                    OutlinedTextField(
+                        value = messageEditDraft,
+                        onValueChange = { messageEditDraft = it },
+                        minLines = 2,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val body = messageEditDraft.trim()
+                            if (body.isNotEmpty()) {
+                                messageViewModel.updateMessage(message.copy(body = body))
+                                messageBeingEdited = null
+                            }
+                        }
+                    ) { Text("Save") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { messageBeingEdited = null }) { Text("Cancel") }
+                }
+            )
         }
     }
 }
 
 @Composable
-private fun MessageBubble(message: MessageEntity, isOwn: Boolean) {
+private fun MessageBubble(
+    message: MessageEntity,
+    isOwn: Boolean,
+    onEdit: (() -> Unit)?,
+    onDelete: (() -> Unit)?
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (isOwn) Arrangement.End else Arrangement.Start
@@ -150,11 +222,32 @@ private fun MessageBubble(message: MessageEntity, isOwn: Boolean) {
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(message.body, style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    messageDateFormat.format(Date(message.timestamp)),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        messageDateFormat.format(Date(message.timestamp)),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (onEdit != null) {
+                        IconButton(onClick = onEdit, modifier = Modifier.size(28.dp)) {
+                            Icon(
+                                Icons.Filled.Edit,
+                                contentDescription = "Edit message",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    if (onDelete != null) {
+                        IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = "Delete message",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             }
         }
     }

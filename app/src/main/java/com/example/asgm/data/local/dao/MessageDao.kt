@@ -3,9 +3,11 @@
 package com.example.asgm.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.asgm.data.local.entity.MessageEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -18,6 +20,14 @@ interface MessageDao {
     // skips a message this device already has instead of erroring on the duplicate id
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(messages: List<MessageEntity>)
+
+    // caller enforces sender-only editing -- the DAO itself doesn't know who's asking
+    @Update
+    suspend fun update(message: MessageEntity)
+
+    // one shared row per message, not a per-user copy -- deleting it removes it for both sides
+    @Delete
+    suspend fun delete(message: MessageEntity)
 
     // every message between these two people, either direction, oldest first
     @Query(

@@ -117,6 +117,7 @@ resident bottom nav bar. All built on existing DAO methods (no new tables):
 | Manage Alerts | `admin_alerts` + `admin_alert_form?alertId={id}` | `AlertDao` insert/update/delete; one form screen handles both Add (`alertId=-1`) and Edit |
 | Manage Posts | `admin_posts` → `community_post/{postId}` | Browsing list only; tapping a post opens the same `PostDetailScreen` a resident sees for their own post, where Admin gets edit/delete-post/delete-comment (see Community Feed addon module below) |
 | Manage SOS | `admin_sos` + `admin_contact_form?serviceId={id}` + `admin_guide_form?guideId={id}` | Full CRUD on `EmergencyContactDao`/`SafetyGuideDao` (insert/update/delete) — same Add-or-Edit form idiom as Manage Alerts (`id=-1` means Add); a change to any contact/guide shows up in resident SOS (`EmergencyHubScreen`) and Search immediately, since both already read the same live `Flow` |
+| Manage Users | `admin_users` → `admin_add_admin` / `admin_reset_password` / `admin_delete_user` | Add Admin, Reset Password (both pre-existing), and Delete User Account — type an ID, confirm, permanently gone |
 | Messages | `admin_messages` (badge: unseen count) | `MessagesInboxScreen` — see Contact Admin messaging below |
 
 Manage SOS's guide form builds the same `"Title||Description"`-per-line `steps` string the seed
@@ -186,6 +187,28 @@ card, Main Hub's mail icon, and Community Feed's People icon (all three read the
 just badged wherever a resident might reach messaging from). Stamped "now" whenever
 `MessagesInboxScreen` or `MembersScreen` opens, since those are the actual entry points to reading
 a message or starting a per-person chat (mirrors the heart icon/`ActivityScreen` pairing above).
+
+Editing and deleting a message are self-only, same rule as editing a comment: `MessageThreadScreen`
+only ever offers the Edit/Delete icons on a bubble where `message.fromUserId == myUserId`, never
+on the other person's message. There's no "delete for me" -- `Messages` is one shared row per
+message, not a per-user copy, so a delete removes it from both people's thread and an edit changes
+what both people see.
+
+## Deleting an account
+
+Both "Profile → Delete My Account" (self) and "Admin → Manage Users → Delete User Account"
+(anyone else, looked up by typed ID) call the same underlying deletion: `UserDao.delete()` locally
+plus `supabase.from("users").delete()` remotely. Every other table's foreign key to `users(id)` is
+`ON DELETE CASCADE` (both in Room's `@ForeignKey` annotations and in `supabase_setup.md`'s SQL),
+so removing a user also removes everything they own -- their reports, posts, comments, likes,
+messages (sent or received), and alert acknowledgements. This is a deliberate choice, not an
+oversight: deleting an account means the person and everything tied to them is gone, not just
+their login disabled. The only difference between the two entry points is what happens right
+after: self-delete immediately logs the session out and returns to Login (since the account you're
+signed in as no longer exists); Admin deleting someone else just returns to the Manage Users list,
+since the Admin's own session is untouched. Admin's delete screen also refuses to target the
+Admin's own id, pointing them at Profile's self-delete instead, so a mid-session accidental
+self-lockout isn't the failure mode of a mistyped ID.
 
 ## Architecture: ViewModel + StateFlow, and Supabase as a second data store
 
