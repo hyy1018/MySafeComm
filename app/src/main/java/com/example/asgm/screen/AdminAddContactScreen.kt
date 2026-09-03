@@ -1,5 +1,5 @@
 // #member3
-// Admin form for adding one emergency contact to SOS.
+// Admin form for adding or editing one emergency contact in SOS.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +19,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,25 +33,48 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.EmergencyContactEntity
+import com.example.asgm.viewmodel.EmergencyContactDetailViewModel
+import com.example.asgm.viewmodel.EmergencyContactDetailViewModelFactory
 import com.example.asgm.viewmodel.EmergencyContactViewModel
 import com.example.asgm.viewmodel.EmergencyContactViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminAddContactScreen(navController: NavHostController) {
+fun AdminAddContactScreen(serviceId: Long = -1L, navController: NavHostController) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
     val viewModel: EmergencyContactViewModel =
         viewModel(factory = EmergencyContactViewModelFactory(db.emergencyContactDao()))
+    val isEditing = serviceId != -1L
+
+    val existingContact: EmergencyContactEntity? = if (isEditing) {
+        val detailViewModel: EmergencyContactDetailViewModel =
+            viewModel(factory = EmergencyContactDetailViewModelFactory(db.emergencyContactDao(), serviceId))
+        detailViewModel.contact.collectAsState().value
+    } else {
+        null
+    }
 
     var name by remember { mutableStateOf("") }
     var detail by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
+    var loadedExisting by remember { mutableStateOf(false) }
+
+    LaunchedEffect(existingContact) {
+        if (!loadedExisting) {
+            existingContact?.let {
+                name = it.name
+                detail = it.categoryEmergency
+                phone = it.phoneNo
+                loadedExisting = true
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Emergency Contact") },
+                title = { Text(if (isEditing) "Edit Emergency Contact" else "Add Emergency Contact") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -92,19 +117,27 @@ fun AdminAddContactScreen(navController: NavHostController) {
             )
             Button(
                 onClick = {
-                    viewModel.addContact(
-                        EmergencyContactEntity(
-                            name = name.trim(),
-                            categoryEmergency = detail.trim(),
-                            phoneNo = phone.trim()
+                    if (isEditing) {
+                        existingContact?.let {
+                            viewModel.updateContact(
+                                it.copy(name = name.trim(), categoryEmergency = detail.trim(), phoneNo = phone.trim())
+                            )
+                        }
+                    } else {
+                        viewModel.addContact(
+                            EmergencyContactEntity(
+                                name = name.trim(),
+                                categoryEmergency = detail.trim(),
+                                phoneNo = phone.trim()
+                            )
                         )
-                    )
+                    }
                     navController.popBackStack()
                 },
                 enabled = name.isNotBlank() && phone.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Add Contact")
+                Text(if (isEditing) "Save Changes" else "Add Contact")
             }
         }
     }

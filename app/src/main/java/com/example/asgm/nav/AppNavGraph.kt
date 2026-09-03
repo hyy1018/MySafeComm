@@ -138,8 +138,20 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         }
         composable("admin_posts") { AdminPostsScreen(navController) }
         composable("admin_sos") { AdminSosScreen(navController) }
-        composable("admin_add_contact") { AdminAddContactScreen(navController) }
-        composable("admin_add_guide") { AdminAddGuideScreen(navController) }
+        composable(
+            route = "admin_contact_form?serviceId={serviceId}",
+            arguments = listOf(navArgument("serviceId") { type = NavType.LongType; defaultValue = -1L })
+        ) { backStackEntry ->
+            val serviceId = backStackEntry.arguments?.getLong("serviceId") ?: -1L
+            AdminAddContactScreen(serviceId = serviceId, navController = navController)
+        }
+        composable(
+            route = "admin_guide_form?guideId={guideId}",
+            arguments = listOf(navArgument("guideId") { type = NavType.LongType; defaultValue = -1L })
+        ) { backStackEntry ->
+            val guideId = backStackEntry.arguments?.getLong("guideId") ?: -1L
+            AdminAddGuideScreen(guideId = guideId, navController = navController)
+        }
         composable("admin_users") { AdminUsersScreen(navController) }
         composable("admin_add_admin") { AdminAddAdminScreen(navController) }
         composable("admin_reset_password") { AdminResetPasswordScreen(navController) }

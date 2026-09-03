@@ -110,7 +110,7 @@ resident bottom nav bar. All built on existing DAO methods (no new tables):
 | Manage Reports | `admin_reports` | `ReportDao.getAll()` / `.updateStatus()` — status chips (Pending/In Progress/Solved) per report |
 | Manage Alerts | `admin_alerts` + `admin_alert_form?alertId={id}` | `AlertDao` insert/update/delete; one form screen handles both Add (`alertId=-1`) and Edit |
 | Manage Posts | `admin_posts` → `community_post/{postId}` | Browsing list only; tapping a post opens the same `PostDetailScreen` a resident sees for their own post, where Admin gets edit/delete-post/delete-comment (see Community Feed addon module below) |
-| Manage SOS | `admin_sos` + `admin_add_contact` + `admin_add_guide` | `EmergencyContactDao.insert()` / `SafetyGuideDao.insert()` — Add-only forms; a new contact/guide shows up in resident SOS (`EmergencyHubScreen`) and Search immediately, since both already read the same live `Flow` |
+| Manage SOS | `admin_sos` + `admin_contact_form?serviceId={id}` + `admin_guide_form?guideId={id}` | Full CRUD on `EmergencyContactDao`/`SafetyGuideDao` (insert/update/delete) — same Add-or-Edit form idiom as Manage Alerts (`id=-1` means Add); a change to any contact/guide shows up in resident SOS (`EmergencyHubScreen`) and Search immediately, since both already read the same live `Flow` |
 | Messages | `admin_messages` (badge: unseen count) | `MessagesInboxScreen` — see Contact Admin messaging below |
 
 Manage SOS's guide form builds the same `"Title||Description"`-per-line `steps` string the seed

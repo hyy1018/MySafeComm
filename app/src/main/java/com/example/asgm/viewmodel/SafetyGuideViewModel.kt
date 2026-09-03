@@ -34,6 +34,37 @@ class SafetyGuideViewModel(private val dao: SafetyGuideDao) : ViewModel() {
             }
         }
     }
+
+    fun updateGuide(guide: SafetyGuideEntity) = viewModelScope.launch {
+        dao.update(guide)
+        if (isSupabaseConfigured) {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("safety_guides").update({
+                        set("categorySafety", guide.categorySafety)
+                        set("steps", guide.steps)
+                    }) {
+                        filter { eq("guideId", guide.guideId) }
+                    }
+                }
+            } catch (e: Exception) {
+                // Cloud copy failed -- local Room copy already saved.
+            }
+        }
+    }
+
+    fun deleteGuide(guide: SafetyGuideEntity) = viewModelScope.launch {
+        dao.delete(guide)
+        if (isSupabaseConfigured) {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("safety_guides").delete { filter { eq("guideId", guide.guideId) } }
+                }
+            } catch (e: Exception) {
+                // Cloud copy failed -- local Room copy already deleted.
+            }
+        }
+    }
 }
 
 class SafetyGuideViewModelFactory(private val dao: SafetyGuideDao) : ViewModelProvider.Factory {

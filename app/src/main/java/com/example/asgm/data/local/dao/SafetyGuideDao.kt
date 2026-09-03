@@ -3,8 +3,10 @@
 package com.example.asgm.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.example.asgm.data.local.entity.SafetyGuideEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -12,6 +14,12 @@ import kotlinx.coroutines.flow.Flow
 interface SafetyGuideDao {
     @Insert
     suspend fun insert(guide: SafetyGuideEntity): Long
+
+    @Update
+    suspend fun update(guide: SafetyGuideEntity)
+
+    @Delete
+    suspend fun delete(guide: SafetyGuideEntity)
 
     @Query("SELECT * FROM safety_guides ORDER BY categorySafety ASC")
     fun getAll(): Flow<List<SafetyGuideEntity>>

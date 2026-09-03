@@ -35,6 +35,38 @@ class EmergencyContactViewModel(private val dao: EmergencyContactDao) : ViewMode
             }
         }
     }
+
+    fun updateContact(contact: EmergencyContactEntity) = viewModelScope.launch {
+        dao.update(contact)
+        if (isSupabaseConfigured) {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("emergency_contacts").update({
+                        set("name", contact.name)
+                        set("phoneNo", contact.phoneNo)
+                        set("categoryEmergency", contact.categoryEmergency)
+                    }) {
+                        filter { eq("serviceId", contact.serviceId) }
+                    }
+                }
+            } catch (e: Exception) {
+                // Cloud copy failed -- local Room copy already saved.
+            }
+        }
+    }
+
+    fun deleteContact(contact: EmergencyContactEntity) = viewModelScope.launch {
+        dao.delete(contact)
+        if (isSupabaseConfigured) {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("emergency_contacts").delete { filter { eq("serviceId", contact.serviceId) } }
+                }
+            } catch (e: Exception) {
+                // Cloud copy failed -- local Room copy already deleted.
+            }
+        }
+    }
 }
 
 class EmergencyContactViewModelFactory(private val dao: EmergencyContactDao) : ViewModelProvider.Factory {
@@ -42,6 +74,25 @@ class EmergencyContactViewModelFactory(private val dao: EmergencyContactDao) : V
         if (modelClass.isAssignableFrom(EmergencyContactViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return EmergencyContactViewModel(dao) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
+// Backs AdminAddContactScreen's edit case: one contact by id.
+class EmergencyContactDetailViewModel(dao: EmergencyContactDao, serviceId: Long) : ViewModel() {
+    val contact: StateFlow<EmergencyContactEntity?> = dao.getById(serviceId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+}
+
+class EmergencyContactDetailViewModelFactory(
+    private val dao: EmergencyContactDao,
+    private val serviceId: Long
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(EmergencyContactDetailViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return EmergencyContactDetailViewModel(dao, serviceId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
