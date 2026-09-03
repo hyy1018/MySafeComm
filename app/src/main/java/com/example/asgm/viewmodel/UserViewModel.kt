@@ -38,6 +38,12 @@ class UserViewModel(private val dao: UserDao) : ViewModel() {
         pushUpdateToCloud(user)
     }
 
+    // permanent -- cascades locally and in Supabase to everything that user owns
+    suspend fun deleteUser(user: UserEntity) {
+        dao.delete(user)
+        pushDeleteToCloud(user)
+    }
+
     suspend fun updateLastSeenActivity(userId: String, timestamp: Long) {
         dao.updateLastSeenActivity(userId, timestamp)
         if (isSupabaseConfigured) {
@@ -93,6 +99,13 @@ class UserDetailViewModel(private val dao: UserDao, userId: String) : ViewModel(
         dao.update(user)
         pushUpdateToCloud(user)
     }
+
+    // used by Profile's own "Delete My Account" -- same permanent, cascading delete as
+    // UserViewModel.deleteUser, just reachable from a screen that only holds this ViewModel
+    fun delete(user: UserEntity) = viewModelScope.launch {
+        dao.delete(user)
+        pushDeleteToCloud(user)
+    }
 }
 
 class UserDetailViewModelFactory(
@@ -141,6 +154,18 @@ private suspend fun pushUpdateToCloud(user: UserEntity) {
             }
         } catch (e: Exception) {
             // Cloud copy failed -- local Room copy already saved.
+        }
+    }
+}
+
+private suspend fun pushDeleteToCloud(user: UserEntity) {
+    if (isSupabaseConfigured) {
+        try {
+            withContext(Dispatchers.IO) {
+                supabase.from("users").delete { filter { eq("id", user.id) } }
+            }
+        } catch (e: Exception) {
+            // Cloud copy failed -- local Room copy already deleted.
         }
     }
 }

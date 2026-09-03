@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -65,6 +66,12 @@ fun AdminUsersScreen(navController: NavHostController) {
                 title = "Reset User Password",
                 subtitle = "Set a new password for an existing account",
                 onClick = { navController.navigate("admin_reset_password") }
+            )
+            UserTaskCard(
+                icon = Icons.Filled.PersonRemove,
+                title = "Delete User Account",
+                subtitle = "Permanently remove an account and everything tied to it",
+                onClick = { navController.navigate("admin_delete_user") }
             )
         }
     }

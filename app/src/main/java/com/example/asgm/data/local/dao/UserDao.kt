@@ -3,6 +3,7 @@
 package com.example.asgm.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -17,6 +18,11 @@ interface UserDao {
 
     @Update
     suspend fun update(user: UserEntity)
+
+    // cascades to that user's reports/posts/comments/likes/messages/alert acknowledgements --
+    // every foreign key pointing at users(id) is ON DELETE CASCADE, both here and in Supabase
+    @Delete
+    suspend fun delete(user: UserEntity)
 
     @Query("SELECT * FROM users WHERE id = :id AND password = :password LIMIT 1")
     suspend fun login(id: String, password: String): UserEntity?

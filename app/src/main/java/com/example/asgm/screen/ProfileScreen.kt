@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,6 +32,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -71,6 +73,7 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
     var avatarUri by remember { mutableStateOf<Uri?>(null) }
     var loadedFields by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showDeleteAccountConfirm by remember { mutableStateOf(false) }
 
     LaunchedEffect(user) {
         if (!loadedFields) {
@@ -274,8 +277,40 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                     ) {
                         Text("Logout")
                     }
+                    TextButton(
+                        onClick = { showDeleteAccountConfirm = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Delete My Account", color = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
+        }
+
+        if (showDeleteAccountConfirm && currentUser != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteAccountConfirm = false },
+                title = { Text("Delete your account?") },
+                text = {
+                    Text(
+                        "This permanently deletes your account and everything tied to it -- " +
+                            "reports, posts, comments, likes, and messages. This cannot be undone."
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.delete(currentUser)
+                        showDeleteAccountConfirm = false
+                        UserSession.logout()
+                        navController.navigate("login") {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteAccountConfirm = false }) { Text("Cancel") }
+                }
+            )
         }
     }
 }

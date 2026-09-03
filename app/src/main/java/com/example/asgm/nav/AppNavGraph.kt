@@ -23,6 +23,7 @@ import com.example.asgm.screen.AdminAddContactScreen
 import com.example.asgm.screen.AdminAddGuideScreen
 import com.example.asgm.screen.AdminAlertFormScreen
 import com.example.asgm.screen.AdminAlertsScreen
+import com.example.asgm.screen.AdminDeleteUserScreen
 import com.example.asgm.screen.AdminHubScreen
 import com.example.asgm.screen.AdminResetPasswordScreen
 import com.example.asgm.screen.AdminPostsScreen
@@ -155,6 +156,7 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         composable("admin_users") { AdminUsersScreen(navController) }
         composable("admin_add_admin") { AdminAddAdminScreen(navController) }
         composable("admin_reset_password") { AdminResetPasswordScreen(navController) }
+        composable("admin_delete_user") { AdminDeleteUserScreen(navController) }
         composable("admin_messages") {
             // nullable, not requireUserId() -- must not throw during a transient no-session frame
             UserSession.currentUserId?.let { adminId ->
