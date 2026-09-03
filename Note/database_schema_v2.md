@@ -125,8 +125,8 @@ messaging, not a separate system).
 
 Own profile also has a "Change Password" button (`ChangePasswordScreen`, route `change_password`
 — self-service, requires the current password, same `PasswordRules` and new-can't-equal-old rule
-as Admin's reset) and a "My Messages" button (`messages_inbox/{userId}`) for checking replies from
-an admin or messages from another resident.
+as Admin's reset). Saving profile changes returns to Main Hub, same pop-or-navigate idiom as the
+bottom bar's Home tab, rather than leaving the resident stranded on the form.
 
 A dedicated friends/connections system (request/accept flow, its own table) was asked about and
 intentionally not built — direct messaging already covers "reach a specific person," and a
@@ -152,9 +152,10 @@ Members list), are just more rows in the same table, so one set of screens serve
 - `MessagesInboxScreen` (route `messages_inbox/{userId}`) -- who `userId` has exchanged messages
   with (`MessageDao.getConversationPartnerIds`). Reached three ways: Admin Hub's "Messages" card
   (`admin_messages`, wraps this with `userId` = the admin's own session id, plus an unseen-count
-  badge -- see below), a signed-in resident's Profile → "My Messages" (same pattern, their own
-  session id), and a signed-out resident's Login → "Check Messages" (`CheckMessagesScreen`: type
-  your ID, same existence check as Contact Admin, then this screen with that typed id).
+  badge -- see below), a signed-in resident's Main Hub top bar mail icon (same pattern, their own
+  session id, sitting between Search and the Profile avatar), and a signed-out resident's Login →
+  "Check Messages" (`CheckMessagesScreen`: type your ID, same existence check as Contact Admin,
+  then this screen with that typed id).
 - `MessageThreadScreen` (route `message_thread/{myUserId}/{otherUserId}`) -- the full
   back-and-forth between those two ids plus a reply box, via `MessageDao.getThread(userA, userB)`.
   `myUserId` is passed explicitly rather than read from session, precisely so the signed-out
@@ -167,9 +168,10 @@ because it was sent from a different device/install (`MessageViewModel.refreshFr
 
 Unread badge: `Users.LastSeenMessagesAt` (same shape as `LastSeenActivityAt`) compared against
 each message's timestamp via `MessageDao.getUnseenMessageCount`. Wired onto Admin Hub's "Messages"
-card (stamped "now" when `MessagesInboxScreen` opens) and, for residents, onto Community Feed's
-People icon -- stamped "now" when `MembersScreen` opens instead, since that's where a resident
-actually reaches per-person chat (mirrors the heart icon/`ActivityScreen` pairing above exactly).
+card, Main Hub's mail icon, and Community Feed's People icon (all three read the same count; it's
+just badged wherever a resident might reach messaging from). Stamped "now" whenever
+`MessagesInboxScreen` or `MembersScreen` opens, since those are the actual entry points to reading
+a message or starting a per-person chat (mirrors the heart icon/`ActivityScreen` pairing above).
 
 ## Architecture: ViewModel + StateFlow, and Supabase as a second data store
 

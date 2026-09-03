@@ -21,7 +21,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -60,6 +63,7 @@ import com.example.asgm.viewmodel.PostViewModel
 import com.example.asgm.viewmodel.PostViewModelFactory
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,6 +81,14 @@ fun MainHubScreen(
     val currentUser = users.find { it.id == userId }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    // Same badge computation as Community Feed's People icon -- unread direct messages.
+    val unseenMessageCount by (
+        if (userId != null) {
+            db.messageDao().getUnseenMessageCount(userId, currentUser?.lastSeenMessagesAt ?: 0)
+        } else {
+            emptyFlow()
+        }
+    ).collectAsState(initial = 0)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -86,6 +98,17 @@ fun MainHubScreen(
                 actions = {
                     IconButton(onClick = { navController.navigate("search") }) {
                         Icon(Icons.Filled.Search, contentDescription = "Search")
+                    }
+                    IconButton(
+                        onClick = { userId?.let { navController.navigate("messages_inbox/$it") } }
+                    ) {
+                        if (unseenMessageCount > 0) {
+                            BadgedBox(badge = { Badge { Text("$unseenMessageCount") } }) {
+                                Icon(Icons.Filled.MailOutline, contentDescription = "My Messages")
+                            }
+                        } else {
+                            Icon(Icons.Filled.MailOutline, contentDescription = "My Messages")
+                        }
                     }
                     IconButton(
                         onClick = {

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -42,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -172,9 +174,10 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                     )
                     OutlinedTextField(
                         value = phone,
-                        onValueChange = { phone = it; errorMessage = null },
+                        onValueChange = { input -> phone = input.filter { it.isDigit() }; errorMessage = null },
                         label = { Text("Phone Number") },
                         singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
@@ -240,6 +243,13 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                             )
                             viewModel.save(updated)
                             UserSession.login(updated)
+                            // Save Changes reads as "done" -- send them back to Home rather than
+                            // leaving them stranded on the form, same pop-or-navigate idiom as
+                            // AppBottomBar's Home tab.
+                            val poppedToHub = navController.popBackStack("main_hub", inclusive = false)
+                            if (!poppedToHub) {
+                                navController.navigate("main_hub") { launchSingleTop = true }
+                            }
                         },
                         enabled = name.isNotBlank(),
                         modifier = Modifier.fillMaxWidth()
@@ -251,12 +261,6 @@ fun ProfileScreen(userId: String, navController: NavHostController) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Change Password")
-                    }
-                    OutlinedButton(
-                        onClick = { navController.navigate("messages_inbox/${currentUser.id}") },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("My Messages")
                     }
                     OutlinedButton(
                         onClick = {
