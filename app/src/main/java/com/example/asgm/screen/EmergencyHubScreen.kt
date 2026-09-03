@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -42,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -137,6 +139,7 @@ private fun ContactCard(contact: EmergencyContactEntity, modifier: Modifier = Mo
     val context = LocalContext.current
     Card(
         modifier = modifier
+            .heightIn(min = 132.dp)
             .clickable { dialContact(context, contact.phoneNo) }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -146,16 +149,27 @@ private fun ContactCard(contact: EmergencyContactEntity, modifier: Modifier = Mo
                 tint = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.height(8.dp))
-            Text(contact.name, style = MaterialTheme.typography.titleSmall)
+            // Capped at a couple lines each -- an admin-typed name/detail with no length limit
+            // would otherwise grow this card past its grid row partner's height.
+            Text(
+                contact.name,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
             Text(
                 contact.categoryEmergency,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 contact.phoneNo,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -174,6 +188,7 @@ private fun GuideCard(guide: SafetyGuideEntity, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 132.dp)
             .clickable(onClick = onClick)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -183,7 +198,12 @@ private fun GuideCard(guide: SafetyGuideEntity, onClick: () -> Unit) {
                 tint = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.height(8.dp))
-            Text(guide.categorySafety, style = MaterialTheme.typography.titleMedium)
+            Text(
+                guide.categorySafety,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
             Text(
                 "Procedures",
                 style = MaterialTheme.typography.bodySmall,
