@@ -33,9 +33,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.ReportEntity
 import com.example.asgm.data.local.entity.ReportStatus
+import com.example.asgm.viewmodel.MessageViewModel
+import com.example.asgm.viewmodel.MessageViewModelFactory
 import com.example.asgm.viewmodel.ReportViewModel
 import com.example.asgm.viewmodel.ReportViewModelFactory
 import com.example.asgm.viewmodel.UserViewModel
@@ -53,6 +56,7 @@ fun AdminReportsScreen(navController: NavHostController) {
     val db = remember { AppDatabase.getInstance(context) }
     val reportViewModel: ReportViewModel = viewModel(factory = ReportViewModelFactory(db.reportDao()))
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
+    val messageViewModel: MessageViewModel = viewModel(factory = MessageViewModelFactory(db.messageDao()))
     val reports by reportViewModel.reports.collectAsState()
     val users by userViewModel.users.collectAsState()
 
@@ -83,15 +87,30 @@ fun AdminReportsScreen(navController: NavHostController) {
             ) {
                 items(reports, key = { it.reportId }) { report ->
                     val reporterName = users.find { it.id == report.userId }?.name ?: report.userId
-                    AdminReportCard(report, reporterName, reportViewModel)
+                    AdminReportCard(report, reporterName, reportViewModel, messageViewModel)
                 }
             }
         }
     }
 }
 
+// The message the reporter gets whenever an admin moves their report to a new status.
+private fun reportStatusMessage(reportTitle: String, status: ReportStatus): String {
+    val label = when (status) {
+        ReportStatus.PENDING -> "Pending"
+        ReportStatus.IN_PROGRESS -> "In Progress"
+        ReportStatus.SOLVED -> "Solved"
+    }
+    return "Update on your report \"$reportTitle\": status is now $label."
+}
+
 @Composable
-private fun AdminReportCard(report: ReportEntity, reporterName: String, viewModel: ReportViewModel) {
+private fun AdminReportCard(
+    report: ReportEntity,
+    reporterName: String,
+    viewModel: ReportViewModel,
+    messageViewModel: MessageViewModel
+) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -113,7 +132,20 @@ private fun AdminReportCard(report: ReportEntity, reporterName: String, viewMode
                 ReportStatus.entries.forEach { status ->
                     FilterChip(
                         selected = report.status == status,
-                        onClick = { viewModel.updateStatus(report.reportId, status) },
+                        onClick = {
+                            // only act on a real change -- re-tapping the current status does nothing
+                            if (report.status != status) {
+                                viewModel.updateStatus(report.reportId, status)
+                                val adminId = UserSession.currentUserId
+                                if (adminId != null) {
+                                    messageViewModel.send(
+                                        fromUserId = adminId,
+                                        toUserId = report.userId,
+                                        body = reportStatusMessage(report.title, status)
+                                    )
+                                }
+                            }
+                        },
                         label = { Text(status.name.replace('_', ' ')) }
                     )
                 }

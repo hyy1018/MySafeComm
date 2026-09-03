@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -60,18 +63,21 @@ fun CheckMessagesScreen(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Enter your User ID to see any messages between you and the community admins.",
+                "Enter the ID you sign in with to see messages between you and the community admins. " +
+                    "Works for both resident and admin accounts.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             OutlinedTextField(
                 value = userId,
                 onValueChange = { userId = it; errorMessage = null },
-                label = { Text("Your User ID") },
+                label = { Text("Your ID") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -82,7 +88,7 @@ fun CheckMessagesScreen(navController: NavHostController) {
                 onClick = {
                     val id = userId.trim()
                     if (id.isEmpty()) {
-                        errorMessage = "Enter your User ID"
+                        errorMessage = "Enter your ID"
                     } else if (users.none { it.id == id }) {
                         errorMessage = "No account found with that ID"
                     } else {

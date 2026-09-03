@@ -3,6 +3,7 @@
 package com.example.asgm.screen
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,11 +40,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.PostEntity
@@ -166,7 +170,10 @@ private fun PostCard(
 ) {
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
+    // key per post -- without it every row shares one ViewModel (bound to the first post), so
+    // liking/commenting on any post made all rows show the same counts.
     val detailViewModel: PostDetailViewModel = viewModel(
+        key = "post_card_${post.postId}",
         factory = PostDetailViewModelFactory(db.postDao(), db.commentDao(), db.likeDao(), post.postId)
     )
     val likeCount by detailViewModel.likeCount.collectAsState()
@@ -201,6 +208,16 @@ private fun PostCard(
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis
             )
+            post.imageUri?.let { uri ->
+                AsyncImage(
+                    model = uri,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.FillWidth
+                )
+            }
             if (post.isEdited) {
                 Text(
                     "(edited by admin)",

@@ -15,8 +15,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PhotoCamera
@@ -46,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
+import com.example.asgm.data.copyImageToAppStorage
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.PostEntity
 import com.example.asgm.viewmodel.PostViewModel
@@ -83,6 +87,8 @@ fun NewPostScreen(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -134,11 +140,13 @@ fun NewPostScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     scope.launch {
+                        // Copy the picked photo into app storage so it still loads after restart.
+                        val storedUri = photoUri?.let { copyImageToAppStorage(context, it) }
                         postViewModel.submit(
                             PostEntity(
                                 userId = UserSession.requireUserId(),
                                 content = content.trim(),
-                                imageUri = photoUri?.toString()
+                                imageUri = storedUri
                             )
                         )
                         navController.popBackStack()

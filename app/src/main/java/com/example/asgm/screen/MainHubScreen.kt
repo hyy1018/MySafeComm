@@ -33,8 +33,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -81,7 +79,6 @@ fun MainHubScreen(
     val users by userViewModel.users.collectAsState()
     val currentUser = users.find { it.id == userId }
     val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
     // Same badge computation as Community Feed's People icon -- unread direct messages.
     val unseenMessageCount by (
         if (userId != null) {
@@ -92,7 +89,6 @@ fun MainHubScreen(
     ).collectAsState(initial = 0)
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("My Safe Community") },
@@ -173,10 +169,11 @@ fun MainHubScreen(
                 currentUser = currentUser,
                 onPost = { content ->
                     scope.launch {
+                        // submit() suspends until the post is saved -- only then open the feed
                         postViewModel.submit(
                             PostEntity(userId = UserSession.requireUserId(), content = content)
                         )
-                        snackbarHostState.showSnackbar("Posted to Community Feed")
+                        onNavigate("community")
                     }
                 }
             )
@@ -190,8 +187,8 @@ fun MainHubScreen(
     }
 }
 
-// type + Send posts straight to Community Feed without leaving Main Hub; text-only, a photo
-// still goes through the full New Post screen
+// type + Send posts to the Community Feed and then opens it; text-only, a photo still goes
+// through the full New Post screen. Send is disabled and does nothing until there's some text.
 @Composable
 private fun QuickPostCard(currentUser: UserEntity?, onPost: (String) -> Unit) {
     var text by remember { mutableStateOf("") }

@@ -44,6 +44,7 @@ import com.example.asgm.screen.MessageThreadScreen
 import com.example.asgm.screen.MessagesInboxScreen
 import com.example.asgm.screen.MyReportsScreen
 import com.example.asgm.screen.NewPostScreen
+import com.example.asgm.screen.PersonalContactFormScreen
 import com.example.asgm.screen.PostDetailScreen
 import com.example.asgm.screen.ProfileScreen
 import com.example.asgm.screen.ReportDetailScreen
@@ -109,6 +110,13 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         }
         composable("alert") { AlertScreen(navController) }
         composable("sos") { EmergencyHubScreen(navController) }
+        composable(
+            route = "personal_contact_form?contactId={contactId}",
+            arguments = listOf(navArgument("contactId") { type = NavType.LongType; defaultValue = -1L })
+        ) { backStackEntry ->
+            val contactId = backStackEntry.arguments?.getLong("contactId") ?: -1L
+            PersonalContactFormScreen(contactId = contactId, navController = navController)
+        }
         composable(
             route = "guide_detail/{guideId}",
             arguments = listOf(navArgument("guideId") { type = NavType.LongType })

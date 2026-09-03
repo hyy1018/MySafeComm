@@ -1,5 +1,5 @@
 // #member3
-// Admin form for adding or editing one emergency contact in SOS.
+// Resident form for adding or editing one of their own private emergency contacts (name + phone).
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -34,40 +34,40 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
-import com.example.asgm.data.local.entity.EmergencyContactEntity
 import com.example.asgm.viewmodel.EmergencyContactDetailViewModel
 import com.example.asgm.viewmodel.EmergencyContactDetailViewModelFactory
-import com.example.asgm.viewmodel.EmergencyContactViewModel
-import com.example.asgm.viewmodel.EmergencyContactViewModelFactory
+import com.example.asgm.viewmodel.PersonalContactViewModel
+import com.example.asgm.viewmodel.PersonalContactViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminAddContactScreen(serviceId: Long = -1L, navController: NavHostController) {
+fun PersonalContactFormScreen(contactId: Long = -1L, navController: NavHostController) {
+    // no session (e.g. restored after process death) -> the nav guard sends us to login
+    val userId = UserSession.currentUserId ?: return
     val context = LocalContext.current
     val db = remember { AppDatabase.getInstance(context) }
-    val viewModel: EmergencyContactViewModel =
-        viewModel(factory = EmergencyContactViewModelFactory(db.emergencyContactDao()))
-    val isEditing = serviceId != -1L
+    val viewModel: PersonalContactViewModel =
+        viewModel(factory = PersonalContactViewModelFactory(db.emergencyContactDao(), userId))
+    val isEditing = contactId != -1L
 
-    val existingContact: EmergencyContactEntity? = if (isEditing) {
+    val existing = if (isEditing) {
         val detailViewModel: EmergencyContactDetailViewModel =
-            viewModel(factory = EmergencyContactDetailViewModelFactory(db.emergencyContactDao(), serviceId))
+            viewModel(factory = EmergencyContactDetailViewModelFactory(db.emergencyContactDao(), contactId))
         detailViewModel.contact.collectAsState().value
     } else {
         null
     }
 
     var name by remember { mutableStateOf("") }
-    var detail by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var loadedExisting by remember { mutableStateOf(false) }
 
-    LaunchedEffect(existingContact) {
+    LaunchedEffect(existing) {
         if (!loadedExisting) {
-            existingContact?.let {
+            existing?.let {
                 name = it.name
-                detail = it.categoryEmergency
                 phone = it.phoneNo
                 loadedExisting = true
             }
@@ -77,7 +77,7 @@ fun AdminAddContactScreen(serviceId: Long = -1L, navController: NavHostControlle
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditing) "Edit Emergency Contact" else "Add Emergency Contact") },
+                title = { Text(if (isEditing) "Edit Contact" else "Add Your Emergency Contact") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -99,15 +99,7 @@ fun AdminAddContactScreen(serviceId: Long = -1L, navController: NavHostControlle
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Name") },
-                placeholder = { Text("e.g., General Emergency") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = detail,
-                onValueChange = { detail = it },
-                label = { Text("Detail") },
-                placeholder = { Text("e.g., Police and ambulance") },
+                placeholder = { Text("e.g., Mum") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -115,7 +107,7 @@ fun AdminAddContactScreen(serviceId: Long = -1L, navController: NavHostControlle
                 value = phone,
                 onValueChange = { input -> phone = input.filter { it.isDigit() || it == '-' } },
                 label = { Text("Phone Number") },
-                placeholder = { Text("e.g., 999") },
+                placeholder = { Text("e.g., 012-345-6789") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth()
@@ -123,19 +115,11 @@ fun AdminAddContactScreen(serviceId: Long = -1L, navController: NavHostControlle
             Button(
                 onClick = {
                     if (isEditing) {
-                        existingContact?.let {
-                            viewModel.updateContact(
-                                it.copy(name = name.trim(), categoryEmergency = detail.trim(), phoneNo = phone.trim())
-                            )
+                        existing?.let {
+                            viewModel.update(it.copy(name = name.trim(), phoneNo = phone.trim()))
                         }
                     } else {
-                        viewModel.addContact(
-                            EmergencyContactEntity(
-                                name = name.trim(),
-                                categoryEmergency = detail.trim(),
-                                phoneNo = phone.trim()
-                            )
-                        )
+                        viewModel.add(name.trim(), phone.trim())
                     }
                     navController.popBackStack()
                 },

@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -42,10 +45,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.CommentEntity
@@ -132,7 +138,14 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
             )
         },
         bottomBar = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            // systemBarsPadding + imePadding so the comment box rides up with the keyboard
+            // instead of sitting behind it -- you can see what you're typing.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .systemBarsPadding()
+                    .imePadding()
+            ) {
                 replyingTo?.let { target ->
                     val targetName = users.find { it.id == target.userId }?.name ?: target.userId
                     Row(
@@ -217,6 +230,16 @@ fun PostDetailScreen(postId: Long, navController: NavHostController) {
                             )
                         }
                         Text(currentPost.content, style = MaterialTheme.typography.bodyLarge)
+                        currentPost.imageUri?.let { uri ->
+                            AsyncImage(
+                                model = uri,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.FillWidth
+                            )
+                        }
                         if (currentPost.isEdited) {
                             Text(
                                 "(edited by admin)",

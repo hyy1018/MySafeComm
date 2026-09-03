@@ -24,6 +24,14 @@ interface EmergencyContactDao {
     @Query("SELECT * FROM emergency_contacts ORDER BY serviceId ASC")
     fun getAll(): Flow<List<EmergencyContactEntity>>
 
+    // the shared list: admin-managed and seeded contacts, no private owner
+    @Query("SELECT * FROM emergency_contacts WHERE ownerId IS NULL ORDER BY serviceId ASC")
+    fun getCommunity(): Flow<List<EmergencyContactEntity>>
+
+    // one resident's own private contacts
+    @Query("SELECT * FROM emergency_contacts WHERE ownerId = :ownerId ORDER BY serviceId ASC")
+    fun getByOwner(ownerId: String): Flow<List<EmergencyContactEntity>>
+
     @Query("SELECT * FROM emergency_contacts WHERE serviceId = :serviceId LIMIT 1")
     fun getById(serviceId: Long): Flow<EmergencyContactEntity?>
 }
