@@ -1,3 +1,4 @@
+// Self-service password change, separate from Admin's reset (this one needs the old password).
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -33,12 +34,6 @@ import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
-/**
- * Self-service password change for the signed-in user -- distinct from Admin's Reset Password,
- * which lets an admin set a password without knowing the old one. Here the user must prove they
- * know their current password first, same PasswordRules as everywhere else, and the same
- * new-can't-equal-old rule AdminResetPasswordScreen already enforces.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangePasswordScreen(navController: NavHostController) {

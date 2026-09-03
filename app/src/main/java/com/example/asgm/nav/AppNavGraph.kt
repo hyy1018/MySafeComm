@@ -1,3 +1,4 @@
+// Every screen and route in the app, plus the login guard and screen transitions.
 package com.example.asgm.nav
 
 import androidx.compose.animation.fadeIn
@@ -53,11 +54,8 @@ private val publicRoutes = setOf(
 
 @Composable
 fun AppNavGraph(navController: NavHostController = rememberNavController()) {
-    // UserSession is in-memory only, so it's empty after a process death (e.g. Android killing
-    // the app in the background while the system photo picker is in front). NavController's own
-    // back stack DOES survive process death, so without this guard a restored screen would still
-    // try to act as a signed-in user and crash on UserSession.requireUserId(). Redirect to Login
-    // instead whenever we land on a protected screen with no session.
+    // UserSession resets on process death but the nav back stack survives it, so without this a
+    // restored screen could crash calling requireUserId() with no session. Bounce back to Login.
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     LaunchedEffect(currentRoute, UserSession.currentUserId) {
         if (currentRoute != null && currentRoute !in publicRoutes && UserSession.currentUserId == null) {
@@ -70,8 +68,7 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
     NavHost(
         navController = navController,
         startDestination = "login",
-        // Default NavHost switches screens instantly, which reads as flat/mechanical. A short
-        // slide+fade in each direction gives normal navigation an "app" feel at near-zero cost.
+        // slide+fade so navigation feels like an app, not an instant screen swap
         enterTransition = { slideInHorizontally(initialOffsetX = { it / 4 }) + fadeIn() },
         exitTransition = { fadeOut(targetAlpha = 0.3f) },
         popEnterTransition = { fadeIn() },
@@ -140,9 +137,7 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
         composable("admin_add_admin") { AdminAddAdminScreen(navController) }
         composable("admin_reset_password") { AdminResetPasswordScreen(navController) }
         composable("admin_messages") {
-            // Nullable, not requireUserId(): must not throw during a transient no-session
-            // composition (process death restoring the back stack) -- the global guard above
-            // redirects to Login a moment later. See MyReportsScreen for the same reasoning.
+            // nullable, not requireUserId() -- must not throw during a transient no-session frame
             UserSession.currentUserId?.let { adminId ->
                 MessagesInboxScreen(userId = adminId, navController = navController)
             }

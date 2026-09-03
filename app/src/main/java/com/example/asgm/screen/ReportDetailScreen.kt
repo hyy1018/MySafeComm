@@ -1,3 +1,4 @@
+// View and edit one of your own hazard reports.
 package com.example.asgm.screen
 
 import android.net.Uri
@@ -52,7 +53,6 @@ import com.example.asgm.data.local.entity.ReportStatus
 import com.example.asgm.viewmodel.ReportDetailViewModel
 import com.example.asgm.viewmodel.ReportDetailViewModelFactory
 
-/** User screen: view and edit one of your own hazard reports. Status stays Admin-controlled; edits here just change the report content, and Admin's Manage Reports reflects them immediately (same table, same Flow). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportDetailScreen(reportId: Long, navController: NavHostController) {

@@ -1,3 +1,4 @@
+// Admin screen: create, edit, and remove alerts.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -49,7 +50,6 @@ import java.util.Locale
 
 private val adminAlertDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
-/** Admin screen: create, edit, and remove community notices. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminAlertsScreen(navController: NavHostController) {

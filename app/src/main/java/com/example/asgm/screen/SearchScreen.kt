@@ -1,3 +1,4 @@
+// Search across reports, alerts, posts, guides, and emergency contacts.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.clickable
@@ -53,7 +54,6 @@ import com.example.asgm.viewmodel.SafetyGuideViewModelFactory
 
 private data class SearchResult(val category: String, val title: String, val subtitle: String, val route: String)
 
-/** User screen: search across Reports (own), Alerts, Community posts, Safety Guides and Emergency contacts. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(navController: NavHostController) {

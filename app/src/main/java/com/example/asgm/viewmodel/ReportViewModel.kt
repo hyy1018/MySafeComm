@@ -1,3 +1,4 @@
+// ViewModel for hazard reports: Admin's full list, new-report submission, edit/delete.
 package com.example.asgm.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -14,15 +15,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// UI -> ViewModel -> Dao (local Room) + Supabase (cloud) -> Database.
-// Backs Admin's "every report" list and new-report submission.
 class ReportViewModel(private val dao: ReportDao) : ViewModel() {
 
     val reports: StateFlow<List<ReportEntity>> = dao.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // suspend, not viewModelScope.launch: ReportHazardScreen awaits this before clearing the form
-    // and navigating away, so it needs to know the insert (and the id Room assigned) finished.
+    // suspend so ReportHazardScreen can await the new id before clearing the form and navigating
     suspend fun submit(report: ReportEntity): Long {
         val newId = dao.insert(report)
         if (isSupabaseConfigured) {
@@ -61,7 +59,7 @@ class ReportViewModelFactory(private val dao: ReportDao) : ViewModelProvider.Fac
     }
 }
 
-/** Backs MyReportsScreen: one resident's own reports, live. */
+// Backs MyReportsScreen: one resident's own reports, live.
 class MyReportsViewModel(dao: ReportDao, userId: String) : ViewModel() {
     val reports: StateFlow<List<ReportEntity>> = dao.getByUser(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -80,7 +78,7 @@ class MyReportsViewModelFactory(
     }
 }
 
-/** Backs ReportDetailScreen: one report, view/edit/delete. */
+// Backs ReportDetailScreen: one report, view/edit/delete.
 class ReportDetailViewModel(private val dao: ReportDao, reportId: Long) : ViewModel() {
 
     val report: StateFlow<ReportEntity?> = dao.getById(reportId)

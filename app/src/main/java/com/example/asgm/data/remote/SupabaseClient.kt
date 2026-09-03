@@ -1,28 +1,21 @@
+// Single Supabase client the whole app shares, same setup as Practical 9.
 package com.example.asgm.data.remote
 
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 
-// START - <Supabase connection>
-// TODO: replace with your project's own values (Supabase dashboard -> Project Settings -> API).
-// SUPABASE_URL looks like "https://xxxxxxxxxxxx.supabase.co".
-// SUPABASE_KEY is the "anon public" key, NOT the service_role key.
+// Project Settings -> API on the Supabase dashboard.
 const val SUPABASE_URL = "https://mmcmoewehhwvwwhxjabk.supabase.co"
 const val SUPABASE_KEY = "sb_publishable_cUr6vKSgRVjoDOhU5B1BTg_mMzM0zQN"
 
-// True once the two placeholders above have been replaced with real values. Every ViewModel's
-// cloud-write call checks this FIRST and skips the Supabase call entirely when false, so the
-// SDK's client object is never touched (and can't throw) before the project is actually set up.
+// false while these are still the placeholder strings -- every ViewModel checks this before
+// touching Supabase at all, so a not-yet-configured project never crashes anything.
 val isSupabaseConfigured: Boolean =
     SUPABASE_URL != "SERVER URL" && SUPABASE_KEY != "API KEY"
 
-// Supabase client instance, created once for the whole app the first time something actually
-// reads it. `by lazy` (not a plain `val`) matters here: every top-level property in this file
-// compiles into one shared class with one shared static initializer, so a plain `val` would build
-// this client -- and risk throwing on the placeholder URL above -- the moment ANYTHING in this
-// file is touched, including just reading `isSupabaseConfigured`. `by lazy` defers that until a
-// caller actually reads `supabase`, which every call site below only does after checking
-// isSupabaseConfigured is true.
+// `by lazy`, not a plain val: top-level properties in one file share one static initializer, so a
+// plain val would build the client (and risk throwing on a bad URL) the moment anything in this
+// file loads. Lazy defers that until something actually reads `supabase`.
 val supabase by lazy {
     createSupabaseClient(
         supabaseUrl = SUPABASE_URL,
@@ -31,4 +24,3 @@ val supabase by lazy {
         install(Postgrest)
     }
 }
-// END - <Supabase connection>

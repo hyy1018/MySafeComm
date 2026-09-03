@@ -1,3 +1,4 @@
+// Room queries for hazard reports: create, edit, and admin status updates.
 package com.example.asgm.data.local.dao
 
 import androidx.room.Dao

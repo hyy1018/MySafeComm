@@ -1,3 +1,4 @@
+// The Community Feed post list.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.clickable
@@ -57,7 +58,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** User screen: the community's Reddit/Facebook-style feed. Admin edit is deferred until Login/roles exist. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityFeedScreen(navController: NavHostController) {

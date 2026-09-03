@@ -1,3 +1,4 @@
+// Login gate -- everything else in the app sits behind this.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.background
@@ -53,7 +54,6 @@ import kotlinx.coroutines.launch
 
 private enum class LoginTab { USER, ADMIN }
 
-/** Login gate: everything else in the app (Main Hub and its modules) sits behind this. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavHostController) {

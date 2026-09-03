@@ -1,3 +1,4 @@
+// Step-by-step procedure for one safety guide category.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.background
@@ -40,7 +41,6 @@ import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.viewmodel.SafetyGuideDetailViewModel
 import com.example.asgm.viewmodel.SafetyGuideDetailViewModelFactory
 
-/** User screen: numbered step-by-step procedure for one safety guide category. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SafetyGuideDetailScreen(guideId: Long, navController: NavHostController) {

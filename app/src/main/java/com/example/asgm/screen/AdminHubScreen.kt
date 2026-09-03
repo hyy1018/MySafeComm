@@ -1,3 +1,4 @@
+// Admin's landing screen after login.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.background
@@ -48,7 +49,6 @@ import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.flow.emptyFlow
 
-/** Admin's landing screen after login -- a separate flow from the resident Main Hub. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminHubScreen(navController: NavHostController) {

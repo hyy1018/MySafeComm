@@ -1,3 +1,4 @@
+// A resident's own hazard reports and their status.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.background
@@ -43,7 +44,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** User screen: the signed-in resident's own hazard reports and their status. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyReportsScreen(navController: NavHostController) {

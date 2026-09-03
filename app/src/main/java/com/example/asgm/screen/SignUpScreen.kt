@@ -1,3 +1,4 @@
+// Self-service account creation (resident accounts only).
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -40,12 +41,6 @@ import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
-/**
- * Self-service account creation: just the ID and password to sign in with. Only creates
- * RESIDENT accounts -- there is no self-serve way to become an Admin. On success, hands off to
- * CompleteProfileScreen instead of going straight to Main Hub -- name/phone/address/email are
- * collected there.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(navController: NavHostController) {

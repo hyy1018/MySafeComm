@@ -1,3 +1,4 @@
+// ViewModel for the SOS safety guide list and detail screen.
 package com.example.asgm.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -13,8 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// UI -> ViewModel -> Dao (local Room) + Supabase (cloud) -> Database.
-// Backs the SOS screen's list of safety guide categories.
 class SafetyGuideViewModel(private val dao: SafetyGuideDao) : ViewModel() {
 
     val guides: StateFlow<List<SafetyGuideEntity>> = dao.getAll()
@@ -22,7 +21,6 @@ class SafetyGuideViewModel(private val dao: SafetyGuideDao) : ViewModel() {
 
     fun addGuide(guide: SafetyGuideEntity) = viewModelScope.launch {
         val newId = dao.insert(guide)
-        // Cloud copy uses the same id Room just generated so both stores agree on the same row.
         if (isSupabaseConfigured) {
             try {
                 supabase.from("safety_guides").insert(guide.copy(guideId = newId))
@@ -43,9 +41,7 @@ class SafetyGuideViewModelFactory(private val dao: SafetyGuideDao) : ViewModelPr
     }
 }
 
-// Backs the single-guide detail screen. Takes guideId up front (via its Factory) so the StateFlow
-// for that one guide is set up once in the ViewModel's body, the same way the list ViewModel above
-// sets up its StateFlow once -- not re-created on every recomposition.
+// Backs the single-guide detail screen.
 class SafetyGuideDetailViewModel(dao: SafetyGuideDao, guideId: Long) : ViewModel() {
 
     val guide: StateFlow<SafetyGuideEntity?> = dao.getById(guideId)

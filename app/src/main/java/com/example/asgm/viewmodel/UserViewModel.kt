@@ -1,3 +1,5 @@
+// ViewModel for login, signup, and profile writes. Shared by every screen that needs the
+// full user list or an account write (login, signup, edit profile, admin add-admin).
 package com.example.asgm.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -13,18 +15,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// UI -> ViewModel -> Dao (local Room) + Supabase (cloud) -> Database.
-// Shared across every screen that needs the user directory or an auth/profile write: login,
-// sign up, profile edits, admin account management, the members directory.
 class UserViewModel(private val dao: UserDao) : ViewModel() {
 
     val users: StateFlow<List<UserEntity>> = dao.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Plain suspend functions (not wrapped in viewModelScope.launch) so the calling screen's own
-    // coroutine can await the result before deciding what happens next -- show an error, navigate,
-    // etc. -- the same way Practical 9's suspend fetchUsers()/addUser() are awaited from the UI's
-    // own scope.launch, instead of firing detached like EmergencyContactViewModel's addContact.
+    // plain suspend, not viewModelScope.launch: the caller awaits this before deciding what's next
     suspend fun login(id: String, password: String): UserEntity? = dao.login(id, password)
 
     suspend fun getById(id: String): UserEntity? = dao.getById(id)
@@ -80,9 +76,7 @@ class UserViewModelFactory(private val dao: UserDao) : ViewModelProvider.Factory
     }
 }
 
-// Backs a single user's live profile (own or someone else's) -- ProfileScreen. Takes userId up
-// front via its Factory, the same reasoning as SafetyGuideDetailViewModel: the StateFlow for that
-// one user is set up once in the ViewModel's body, not re-created on every recomposition.
+// Backs one user's live profile (own or someone else's) -- ProfileScreen.
 class UserDetailViewModel(private val dao: UserDao, userId: String) : ViewModel() {
 
     val user: StateFlow<UserEntity?> = dao.observeById(userId)
@@ -107,8 +101,7 @@ class UserDetailViewModelFactory(
     }
 }
 
-// Shared by UserViewModel and UserDetailViewModel above -- both push the same shape of write to
-// Supabase, just triggered from different screens.
+// shared cloud-write helpers, used by both ViewModels above
 private suspend fun pushInsertToCloud(user: UserEntity) {
     if (isSupabaseConfigured) {
         try {

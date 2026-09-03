@@ -1,3 +1,4 @@
+// Room queries for post likes, plus likes-on-your-posts for the Activity feed.
 package com.example.asgm.data.local.dao
 
 import androidx.room.Dao
@@ -21,7 +22,7 @@ interface LikeDao {
     @Query("SELECT EXISTS(SELECT 1 FROM likes WHERE postId = :postId AND userId = :userId)")
     fun isLikedByUser(postId: Long, userId: String): Flow<Boolean>
 
-    /** Instagram-style activity feed: likes on this person's own posts, excluding self-likes. */
+    // likes on this person's own posts, excluding their own likes
     @Query(
         "SELECT l.* FROM likes l JOIN posts p ON l.postId = p.postId " +
             "WHERE p.userId = :postOwnerId AND l.userId != :postOwnerId ORDER BY l.timestamp DESC"

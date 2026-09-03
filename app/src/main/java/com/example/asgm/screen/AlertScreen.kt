@@ -1,3 +1,4 @@
+// Resident's Live Alerts feed.
 package com.example.asgm.screen
 
 import androidx.compose.animation.animateContentSize
@@ -59,7 +60,6 @@ import java.util.Locale
 
 private val alertDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
-/** User screen: community notice feed. Admin's add/edit/delete alert screen is deferred until Login/roles exist. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertScreen(navController: NavHostController) {
@@ -191,7 +191,7 @@ private fun AlertCard(
     }
 }
 
-/** A formal "official notice" style label/value line, e.g. "Date: Aug 26, 2026". */
+// a formal label/value line, e.g. "Date: Aug 26, 2026"
 @Composable
 private fun NoticeMetaRow(label: String, value: String) {
     Row {

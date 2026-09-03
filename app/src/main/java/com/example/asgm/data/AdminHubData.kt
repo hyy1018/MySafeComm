@@ -1,3 +1,4 @@
+// The 5 cards shown on the Admin dashboard.
 package com.example.asgm.data
 
 import androidx.compose.material.icons.Icons
@@ -8,7 +9,6 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ReportProblem
 import com.example.asgm.model.MainHubItem
 
-/** Admin dashboard entries: separate from the resident Main Hub (matches the login nav split). */
 object AdminHubData {
     val modules = listOf(
         MainHubItem(

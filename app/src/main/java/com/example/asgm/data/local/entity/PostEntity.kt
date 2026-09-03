@@ -1,3 +1,4 @@
+// A Community Feed post. isEdited/editedByAdminId track if an admin changed the content.
 package com.example.asgm.data.local.entity
 
 import androidx.room.Entity
@@ -6,11 +7,6 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
-/**
- * Community Feed addon module: user-uploaded posts (Reddit/Facebook-style).
- * Admins may edit a post's content; [isEdited]/[editedByAdminId] record that.
- */
-// @Serializable lets this same class double as the row model for the Supabase "posts" table.
 @Serializable
 @Entity(
     tableName = "posts",

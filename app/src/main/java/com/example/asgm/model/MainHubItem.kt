@@ -1,3 +1,4 @@
+// One card on the Main Hub or Admin Hub grid.
 package com.example.asgm.model
 
 import androidx.compose.ui.graphics.vector.ImageVector

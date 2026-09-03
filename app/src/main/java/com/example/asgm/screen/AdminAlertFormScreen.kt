@@ -1,3 +1,4 @@
+// Admin form for adding or editing one alert.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -39,7 +40,6 @@ import com.example.asgm.viewmodel.AlertDetailViewModelFactory
 import com.example.asgm.viewmodel.AlertViewModel
 import com.example.asgm.viewmodel.AlertViewModelFactory
 
-/** Admin screen: one form for both adding a new alert and editing an existing one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminAlertFormScreen(alertId: Long, navController: NavHostController) {

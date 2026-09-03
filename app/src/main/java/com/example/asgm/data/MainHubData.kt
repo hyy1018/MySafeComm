@@ -1,3 +1,4 @@
+// The 4 cards shown on the resident Main Hub.
 package com.example.asgm.data
 
 import androidx.compose.material.icons.Icons
@@ -7,13 +8,6 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ReportProblem
 import com.example.asgm.model.MainHubItem
 
-/**
- * Static menu entries shown as cards on the Main Hub. The Community Feed entry is the
- * addon module (Reddit/Facebook-style posts) and is its own top-level entry.
- * Safety Guide used to be its own fifth entry; it's now folded into SOS (EmergencyHubScreen)
- * since "who to call" and "what to do" in an emergency are the same mental model, so Main Hub
- * stays at four entries instead of growing back to five.
- */
 object MainHubData {
     val modules = listOf(
         MainHubItem(

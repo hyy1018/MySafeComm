@@ -1,3 +1,4 @@
+// ViewModels for Community Feed: posts, comments/replies, likes, and the Activity feed.
 package com.example.asgm.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -17,15 +18,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// UI -> ViewModel -> Dao (local Room) + Supabase (cloud) -> Database.
 // Backs the Community Feed post list, new-post submission, and Admin's post editing.
 class PostViewModel(private val dao: PostDao) : ViewModel() {
 
     val posts: StateFlow<List<PostEntity>> = dao.getAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // suspend, not viewModelScope.launch: NewPostScreen awaits this before navigating back, the
-    // same reasoning as ReportViewModel.submit.
+    // suspend so NewPostScreen can await the new id before navigating back
     suspend fun submit(post: PostEntity): Long {
         val newId = dao.insert(post)
         if (isSupabaseConfigured) {
@@ -66,11 +65,8 @@ class PostViewModelFactory(private val dao: PostDao) : ViewModelProvider.Factory
     }
 }
 
-/**
- * Backs PostDetailScreen: one post, its comments, and its like count. userId is taken per-call
- * (addComment/like/unlike) instead of baked into the constructor, so this ViewModel can be built
- * without ever needing UserSession.requireUserId() during composition.
- */
+// Backs PostDetailScreen: one post, its comments, and its like count. userId is passed per call
+// (addComment/like/unlike) rather than in the constructor, so building this never needs a session.
 class PostDetailViewModel(
     private val postDao: PostDao,
     private val commentDao: CommentDao,
@@ -170,7 +166,7 @@ class PostDetailViewModelFactory(
     }
 }
 
-/** Backs one post card/row's "did I like this" state -- same pattern as AlertAckViewModel. */
+// Backs one post row's "did I like this" state.
 class PostLikeViewModel(
     private val dao: LikeDao,
     private val postId: Long,
@@ -195,7 +191,7 @@ class PostLikeViewModelFactory(
     }
 }
 
-/** Backs ActivityScreen: likes and comments on the signed-in user's own posts. */
+// Backs ActivityScreen: likes and comments on the signed-in user's own posts.
 class ActivityViewModel(
     commentDao: CommentDao,
     likeDao: LikeDao,

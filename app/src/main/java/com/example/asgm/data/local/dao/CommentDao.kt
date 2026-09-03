@@ -1,3 +1,4 @@
+// Room queries for post comments/replies, plus comments-on-your-posts for the Activity feed.
 package com.example.asgm.data.local.dao
 
 import androidx.room.Dao
@@ -18,7 +19,7 @@ interface CommentDao {
     @Query("SELECT * FROM comments WHERE postId = :postId ORDER BY timestamp ASC")
     fun getByPost(postId: Long): Flow<List<CommentEntity>>
 
-    /** Instagram-style activity feed: comments on this person's own posts, excluding self-comments. */
+    // comments on this person's own posts, excluding their own comments
     @Query(
         "SELECT c.* FROM comments c JOIN posts p ON c.postId = p.postId " +
             "WHERE p.userId = :postOwnerId AND c.userId != :postOwnerId ORDER BY c.timestamp DESC"

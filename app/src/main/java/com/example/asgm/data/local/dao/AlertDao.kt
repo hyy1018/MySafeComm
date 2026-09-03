@@ -1,3 +1,4 @@
+// Room queries for community alerts, plus the unacknowledged-urgent-count for the Alert badge.
 package com.example.asgm.data.local.dao
 
 import androidx.room.Dao
@@ -25,7 +26,7 @@ interface AlertDao {
     @Query("SELECT * FROM alerts WHERE alertId = :alertId LIMIT 1")
     fun getById(alertId: Long): Flow<AlertEntity?>
 
-    /** Drives the bottom-nav Alert badge: urgent notices this user hasn't confirmed yet. */
+    // urgent notices this user hasn't confirmed yet -- drives the bottom-nav Alert badge
     @Query(
         "SELECT COUNT(*) FROM alerts WHERE priority = 'URGENT' AND alertId NOT IN " +
             "(SELECT alertId FROM alert_acknowledgements WHERE userId = :userId)"

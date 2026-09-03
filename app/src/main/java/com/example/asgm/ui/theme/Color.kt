@@ -1,9 +1,7 @@
+// Guardian Sync brand colors: blue = trust, green = community, amber = alerts.
 package com.example.asgm.ui.theme
 
 import androidx.compose.ui.graphics.Color
-
-// Guardian Sync brand palette: blue = trust/security (primary), green = safety/community
-// (secondary), amber = alerts/highlights (tertiary). Used for both light and dark schemes below.
 
 // Light
 val BluePrimaryLight = Color(0xFF1E5AA8)

@@ -1,3 +1,4 @@
+// Hazard report submitted by a resident. Same class doubles as the Supabase row model.
 package com.example.asgm.data.local.entity
 
 import androidx.room.Entity
@@ -11,7 +12,6 @@ enum class ReportStatus {
     PENDING, IN_PROGRESS, SOLVED
 }
 
-// @Serializable lets this same class double as the row model for the Supabase "reports" table.
 @Serializable
 @Entity(
     tableName = "reports",

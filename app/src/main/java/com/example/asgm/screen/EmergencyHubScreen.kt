@@ -1,3 +1,4 @@
+// SOS screen: emergency contacts and safety guides in one page.
 package com.example.asgm.screen
 
 import android.content.Intent
@@ -52,12 +53,6 @@ import com.example.asgm.viewmodel.EmergencyContactViewModelFactory
 import com.example.asgm.viewmodel.SafetyGuideViewModel
 import com.example.asgm.viewmodel.SafetyGuideViewModelFactory
 
-/**
- * User screen: SOS -- single-tap emergency contacts plus safety guides in one place, since "who
- * to call" and "what to do" in an emergency are the same mental model. One continuous grid with
- * a section header between the two, rather than tabs, so it reads as one page, not two stitched
- * together. Admin management of either is deferred until Login/roles exist.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmergencyHubScreen(navController: NavHostController) {

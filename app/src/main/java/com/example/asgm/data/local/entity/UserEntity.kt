@@ -1,3 +1,4 @@
+// A resident/admin account. Same class doubles as the Supabase row model.
 package com.example.asgm.data.local.entity
 
 import androidx.room.Entity
@@ -9,7 +10,6 @@ enum class UserRole {
     RESIDENT, ADMIN, RESPONDER
 }
 
-// @Serializable lets this same class double as the row model for the Supabase "users" table.
 @Serializable
 @Entity(tableName = "users")
 data class UserEntity(
@@ -21,8 +21,6 @@ data class UserEntity(
     val address: String = "",
     val email: String = "",
     val avatarUri: String? = null,
-    /** When this user last opened the Community activity feed -- drives the unread badge. */
-    val lastSeenActivityAt: Long = 0,
-    /** When this user last opened their Messages inbox -- drives the unread message badge. */
-    val lastSeenMessagesAt: Long = 0
+    val lastSeenActivityAt: Long = 0, // last time they opened Activity -- drives its unread badge
+    val lastSeenMessagesAt: Long = 0 // last time they opened Messages -- drives its unread badge
 )

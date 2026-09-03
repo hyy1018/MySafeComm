@@ -1,3 +1,4 @@
+// Mandatory profile setup right after signup (avatar, name, phone, address, email).
 package com.example.asgm.screen
 
 import android.net.Uri
@@ -47,12 +48,6 @@ import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
-/**
- * Mandatory onboarding step right after Sign Up, before reaching Main Hub: collects the profile
- * fields the account was created without (avatar, name, phone, address, email). Name and a
- * valid-format email are required; avatar/phone/address are optional and can be filled in later
- * from My Profile.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompleteProfileScreen(navController: NavHostController) {

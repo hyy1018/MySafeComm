@@ -1,3 +1,4 @@
+// ViewModel for community alerts: resident's Live Alerts list, Admin add/edit/delete.
 package com.example.asgm.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -15,8 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// UI -> ViewModel -> Dao (local Room) + Supabase (cloud) -> Database.
-// Backs the resident's Live Alerts list and every Admin alert write (add/edit/delete).
 class AlertViewModel(private val dao: AlertDao) : ViewModel() {
 
     val alerts: StateFlow<List<AlertEntity>> = dao.getAll()
@@ -74,7 +73,7 @@ class AlertViewModelFactory(private val dao: AlertDao) : ViewModelProvider.Facto
     }
 }
 
-/** Backs AdminAlertFormScreen's "editing an existing alert" case: one live alert by id. */
+// Backs AdminAlertFormScreen's edit case: one live alert by id.
 class AlertDetailViewModel(dao: AlertDao, alertId: Long) : ViewModel() {
     val alert: StateFlow<AlertEntity?> = dao.getById(alertId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
@@ -93,7 +92,7 @@ class AlertDetailViewModelFactory(
     }
 }
 
-/** Backs one AlertCard row's "did I acknowledge this" state and the Confirm button. */
+// Backs one AlertCard row's acknowledgement state and Confirm button.
 class AlertAckViewModel(
     private val dao: AlertAcknowledgementDao,
     private val alertId: Long,

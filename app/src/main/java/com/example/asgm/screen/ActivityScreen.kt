@@ -1,3 +1,4 @@
+// IG-style activity feed: who liked/commented on your own posts, with the unread badge.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.background
@@ -66,11 +67,6 @@ private data class ActivityItem(
 
 private val activityDateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
 
-/**
- * Instagram-style "activity" feed: who liked or commented on your own posts. Not a real push
- * notification -- just an in-app list, plus a red badge (Community bottom-nav tab and the heart
- * icon here) driven by PostDao.getUnseenActivityCount, cleared the moment this screen opens.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(navController: NavHostController) {

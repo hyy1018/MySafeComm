@@ -1,3 +1,4 @@
+// One post with its comments/replies and like button.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.clickable
@@ -62,7 +63,6 @@ import java.util.Locale
 
 private val dateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
 
-/** User screen: a single post with its comments and like button. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostDetailScreen(postId: Long, navController: NavHostController) {

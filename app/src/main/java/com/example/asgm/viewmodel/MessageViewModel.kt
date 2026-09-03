@@ -1,3 +1,4 @@
+// ViewModels for chat messages: sending, thread view, and the inbox list.
 package com.example.asgm.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -13,9 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// UI -> ViewModel -> Dao (local Room) + Supabase (cloud) -> Database.
-// Backs sending a message (from ContactAdminScreen or a reply in MessageThreadScreen) and
-// pulling in anything the cloud has that this device doesn't -- see refreshFromCloud.
 class MessageViewModel(private val dao: MessageDao) : ViewModel() {
 
     fun send(fromUserId: String, toUserId: String, body: String) = viewModelScope.launch {
@@ -30,14 +28,8 @@ class MessageViewModel(private val dao: MessageDao) : ViewModel() {
         }
     }
 
-    /**
-     * "Refresh" button per the teacher's suggestion that manual refresh is an acceptable
-     * substitute for real-time chat. Locally, Room's Flow already updates instantly -- this
-     * button exists for the case a manual poll actually matters: the other party sent/replied
-     * from a different device/install, so it only exists in Supabase, not yet in this device's
-     * local Room copy. Uses two plain eq() queries rather than one OR'd query, since that's the
-     * filter style Practical 9 actually demonstrates.
-     */
+    // manual "Refresh" -- Room's Flow already updates live locally, this just pulls in a message
+    // that only exists in Supabase because it came from a different device/install
     fun refreshFromCloud(userId: String) = viewModelScope.launch {
         if (!isSupabaseConfigured) return@launch
         try {
@@ -64,7 +56,7 @@ class MessageViewModelFactory(private val dao: MessageDao) : ViewModelProvider.F
     }
 }
 
-/** Backs one thread view: every message between two specific people. */
+// Backs one thread view: every message between two specific people.
 class MessageThreadViewModel(dao: MessageDao, userA: String, userB: String) : ViewModel() {
     val messages: StateFlow<List<MessageEntity>> = dao.getThread(userA, userB)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -84,11 +76,8 @@ class MessageThreadViewModelFactory(
     }
 }
 
-/**
- * Backs MessagesInboxScreen's list: who this person has exchanged messages with. Generic --
- * used by an Admin checking messages from residents AND a resident checking their own messages
- * (replies from an admin, or a direct chat with another resident via Community Members).
- */
+// Backs MessagesInboxScreen: who this person has exchanged messages with. Same class for an
+// Admin checking resident messages and a resident checking theirs -- it's just a user id.
 class MessagesInboxViewModel(dao: MessageDao, userId: String) : ViewModel() {
     val partnerIds: StateFlow<List<String>> = dao.getConversationPartnerIds(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

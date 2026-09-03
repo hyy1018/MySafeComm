@@ -1,3 +1,4 @@
+// One conversation between two people, plus a reply box.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -51,11 +52,6 @@ import java.util.Locale
 
 private val messageDateFormat = SimpleDateFormat("MMM dd, hh:mm a", Locale.getDefault())
 
-/**
- * One conversation between [myUserId] and [otherUserId], plus a reply box. Generic, same as
- * MessagesInboxScreen it's opened from: an Admin replying to a resident, a resident checking an
- * admin's reply, or two residents chatting directly (started from Community Members).
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessageThreadScreen(myUserId: String, otherUserId: String, navController: NavHostController) {

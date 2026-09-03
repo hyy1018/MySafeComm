@@ -1,3 +1,5 @@
+// List of who a person has exchanged messages with -- shared by Admin's Messages, a resident's
+// My Messages, and the signed-out Check Messages flow.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.clickable
@@ -44,17 +46,6 @@ import com.example.asgm.viewmodel.MessagesInboxViewModelFactory
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 
-/**
- * Who [userId] has exchanged messages with. Generic, not admin-only: an Admin reaches this from
- * Admin Hub's "Messages" (userId = their own session id) checking messages residents sent via
- * Login's Contact Admin; a signed-in resident reaches it from Profile's "My Messages" (userId =
- * their own session id) checking an admin's reply, or a direct chat with another resident started
- * from Community Members; a signed-out resident reaches it from Login's "Check Messages" (userId
- * = the ID they typed in, since they can't authenticate) to see replies without needing to log in.
- *
- * Local Room's Flow already updates live, but the Refresh action also pulls anything Supabase has
- * that this device doesn't -- e.g. a message sent from a different device/install.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessagesInboxScreen(userId: String, navController: NavHostController) {

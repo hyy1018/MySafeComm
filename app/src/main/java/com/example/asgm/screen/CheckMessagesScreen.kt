@@ -1,3 +1,4 @@
+// Lets a signed-out user check for admin replies (identifies themselves by ID, not a password).
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -31,13 +32,6 @@ import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 
-/**
- * Reached from Login's "Check Messages" -- for someone who messaged an admin via Contact Admin
- * (e.g. about a forgotten password) and now wants to see if there's a reply, without being able
- * to log in yet. Same reasoning as ContactAdminScreen: identify yourself by typing your own ID,
- * since you can't authenticate. Once the ID checks out, opens the same MessagesInboxScreen a
- * signed-in resident sees from Profile's "My Messages".
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckMessagesScreen(navController: NavHostController) {

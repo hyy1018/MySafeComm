@@ -1,3 +1,4 @@
+// Submit a new hazard report.
 package com.example.asgm.screen
 
 import android.net.Uri
@@ -52,7 +53,6 @@ import com.example.asgm.viewmodel.ReportViewModel
 import com.example.asgm.viewmodel.ReportViewModelFactory
 import kotlinx.coroutines.launch
 
-/** User screen: submit a new hazard report. Admin's report management is a separate screen (later). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportHazardScreen(navController: NavHostController) {

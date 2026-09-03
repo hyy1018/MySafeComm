@@ -1,3 +1,4 @@
+// Resident's home screen: quick-post bar plus the module cards (Report, Alert, Comm, SOS).
 package com.example.asgm.screen
 
 import androidx.compose.foundation.background
@@ -165,12 +166,8 @@ fun MainHubScreen(
     }
 }
 
-/**
- * Instagram/Facebook-style quick-post bar: type straight into it and tap Send to post to the
- * Community Feed without leaving Main Hub. Text-only -- adding a photo still goes through the
- * full New Post screen (Community Feed's FAB), so this stays a one-line shortcut, not a second
- * copy of that form.
- */
+// type + Send posts straight to Community Feed without leaving Main Hub; text-only, a photo
+// still goes through the full New Post screen
 @Composable
 private fun QuickPostCard(currentUser: UserEntity?, onPost: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
@@ -230,7 +227,7 @@ private fun QuickPostCard(currentUser: UserEntity?, onPost: (String) -> Unit) {
     }
 }
 
-/** Each module gets its own accent color so the card list reads as distinct sections, not a plain repeated list. */
+// each module gets its own accent color so the list reads as distinct sections
 @Composable
 private fun moduleAccent(moduleId: String): Pair<Color, Color> =
     when (moduleId) {

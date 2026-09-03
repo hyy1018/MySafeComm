@@ -1,3 +1,4 @@
+// Community directory of every account, with a chat icon to message someone directly.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.background
@@ -49,12 +50,6 @@ import com.example.asgm.data.local.entity.UserEntity
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 
-/**
- * Community directory: everyone's name/avatar. Tapping someone else opens their read-only
- * profile; a small chat icon opens a direct message thread with them (the same generic messaging
- * used for Contact Admin). Your own row is pinned to the top with a "ME" label and doesn't do
- * anything when tapped -- there's nothing to view/message about yourself from here.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MembersScreen(navController: NavHostController) {

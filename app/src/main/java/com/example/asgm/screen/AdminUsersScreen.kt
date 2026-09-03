@@ -1,3 +1,4 @@
+// Admin menu to pick a user-management task (add admin, or reset a password).
 package com.example.asgm.screen
 
 import androidx.compose.foundation.clickable
@@ -30,7 +31,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 
-/** Admin screen: choose which user-management task to do -- kept as two separate screens rather than one combined form. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminUsersScreen(navController: NavHostController) {

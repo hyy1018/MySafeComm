@@ -1,3 +1,4 @@
+// Room queries for the users table: login, lookup, and profile updates.
 package com.example.asgm.data.local.dao
 
 import androidx.room.Dao

@@ -1,3 +1,4 @@
+// Shared bottom nav bar for Main Hub and its sibling screens.
 package com.example.asgm.screen
 
 import androidx.compose.material.icons.Icons
@@ -36,7 +37,6 @@ private val bottomNavItems = listOf(
     BottomNavItem("sos", "SOS", Icons.Filled.Emergency)
 )
 
-/** Shared bottom navigation bar, present on Main Hub and its sibling module screens. */
 @Composable
 fun AppBottomBar(navController: NavHostController) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route

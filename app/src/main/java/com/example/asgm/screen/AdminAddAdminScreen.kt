@@ -1,3 +1,4 @@
+// Admin screen: create another Admin account.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +36,6 @@ import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
-/** Admin screen: create another Admin account. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminAddAdminScreen(navController: NavHostController) {

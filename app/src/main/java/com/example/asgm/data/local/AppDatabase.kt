@@ -1,3 +1,4 @@
+// The Room database: table list, DAOs, and seed data for a fresh install.
 package com.example.asgm.data.local
 
 import android.content.Context
@@ -67,16 +68,12 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "my_safe_community.db"
                 )
-                    // Dev-time convenience: the schema is still changing often. Recreate the
-                    // database instead of crashing when the version bumps with no Migration.
-                    // Replace with real Migrations before submission if user data must survive an update.
+                    // dev-time only: wipes and rebuilds on every schema bump instead of crashing.
+                    // swap for real Migrations before submission if user data must survive an update.
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .addCallback(object : Callback() {
-                    // Seeds run on every open (not just onCreate): fallbackToDestructiveMigration
-                    // wipes tables without re-invoking onCreate, and each seed function below
-                    // checks the table is empty first, so this stays idempotent and self-heals
-                    // after a destructive migration instead of leaving the test accounts missing
-                    // (which crashed Post/Comment/Like inserts with a FOREIGN KEY constraint error).
+                    // runs on every open, not just onCreate, since the wipe above skips onCreate;
+                    // each seed function checks the table is empty first so this stays idempotent
                     override fun onOpen(db: SupportSQLiteDatabase) {
                         super.onOpen(db)
                         seedTestAccounts(db)
@@ -92,18 +89,10 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
 
-                    // Only two test accounts to sign in with on the Login screen:
-                    // test1/abc123456 (User tab) and admin1/abc123456 (Admin tab).
-                    //
-                    // IMPORTANT: every column below is NOT NULL with no SQL-level default (Kotlin
-                    // default parameter values on UserEntity are NOT reflected in the generated
-                    // schema -- they only apply when you construct the object in Kotlin code).
-                    // INSERT OR IGNORE silently DROPS a row that violates NOT NULL, the same as a
-                    // PK/UNIQUE conflict -- no exception, no crash, it just quietly never inserts.
-                    // This has already caused two "seed accounts can't log in" bugs (missing
-                    // address, then missing lastSeenActivityAt): whenever a NOT NULL column is
-                    // added to UserEntity, it MUST be added to seedUser()'s column list too, or
-                    // every seeded account silently stops being created.
+                    // test1/abc123456 (resident) and admin1/abc123456 (admin) to sign in with.
+                    // IMPORTANT: every column here is NOT NULL -- INSERT OR IGNORE silently drops
+                    // the whole row if one's missing (no crash, account just never gets created).
+                    // Adding a NOT NULL column to UserEntity? Add it here too.
                     private fun seedUser(
                         db: SupportSQLiteDatabase,
                         id: String,
@@ -125,9 +114,7 @@ abstract class AppDatabase : RoomDatabase() {
                         seedUser(db, "admin1", "abc123456", "Demo Admin", "ADMIN", "0000000000", "admin1@example.com")
                     }
 
-                    // Sample community notices so the Live Alerts feed isn't empty before an
-                    // Admin "Add Alert" screen exists. Formatted as formal official notices:
-                    // date (timestamp), location, and issuing office.
+                    // sample notices so Live Alerts isn't empty on first launch
                     private fun seedAlerts(db: SupportSQLiteDatabase) {
                         if (rowCount(db, "alerts") > 0) return
                         val now = System.currentTimeMillis()
@@ -177,19 +164,15 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
 
-                    // Sample directory so the SOS grid isn't empty before an Admin "Manage
-                    // Contacts" screen exists. Just the 5 primary numbers -- no separate
-                    // "Specialized Services" list.
+                    // sample contacts so SOS isn't empty on first launch
                     private fun seedEmergencyContacts(db: SupportSQLiteDatabase) {
                         if (rowCount(db, "emergency_contacts") > 0) return
                         data class Contact(val name: String, val phone: String, val description: String)
                         val contacts = listOf(
-                            // The four 99x emergency numbers fill the grid's first 2 rows...
                             Contact("General Emergency", "999", "Police and ambulance"),
                             Contact("Scam Response", "997", "Report suspected scams"),
                             Contact("Civil Defence (APM)", "991", "Floods, trees, snakes"),
                             Contact("Fire and Rescue", "994", "Fire emergencies"),
-                            // ...and Security, being the odd one out, gets centered on its own row.
                             Contact("Neighborhood Security", "012-345-6789", "Direct line to community patrol")
                         )
                         contacts.forEach { c ->
@@ -200,8 +183,7 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
 
-                    // Sample step-by-step guides so the Safety Guide screens aren't empty before
-                    // an Admin "Manage Guides" screen exists.
+                    // sample guides so Safety Guides isn't empty on first launch
                     private fun seedSafetyGuides(db: SupportSQLiteDatabase) {
                         if (rowCount(db, "safety_guides") > 0) return
                         val fireSteps = listOf(

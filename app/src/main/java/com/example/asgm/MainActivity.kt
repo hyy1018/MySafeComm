@@ -1,3 +1,4 @@
+// App entry point: sets the theme and hands off to the nav graph.
 package com.example.asgm
 
 import android.os.Bundle

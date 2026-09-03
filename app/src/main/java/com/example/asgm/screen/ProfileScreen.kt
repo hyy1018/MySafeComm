@@ -1,3 +1,4 @@
+// One profile screen for two cases: your own (editable) and someone else's (read-only).
 package com.example.asgm.screen
 
 import android.net.Uri
@@ -50,11 +51,6 @@ import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.viewmodel.UserDetailViewModel
 import com.example.asgm.viewmodel.UserDetailViewModelFactory
 
-/**
- * One screen for both cases: viewing your own profile (editable: avatar, name, phone, address,
- * email) and viewing another resident's profile (read-only). Friends/connections were considered
- * but skipped for scope -- this is just "who is this person" + self-service profile editing.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(userId: String, navController: NavHostController) {

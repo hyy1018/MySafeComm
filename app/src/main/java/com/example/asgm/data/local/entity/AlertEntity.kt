@@ -1,3 +1,4 @@
+// Community notice shown in Live Alerts. Same class doubles as the Supabase row model.
 package com.example.asgm.data.local.entity
 
 import androidx.room.Entity
@@ -9,7 +10,6 @@ enum class AlertPriority {
     INFO, URGENT
 }
 
-// @Serializable lets this same class double as the row model for the Supabase "alerts" table.
 @Serializable
 @Entity(tableName = "alerts")
 data class AlertEntity(
@@ -17,9 +17,7 @@ data class AlertEntity(
     val title: String,
     val body: String,
     val priority: AlertPriority = AlertPriority.INFO,
-    /** Where the notice applies, e.g. "Oakwood Sector, Blocks A-G". */
-    val location: String = "",
-    /** Who posted it, e.g. an admin's display name. Set once at creation; not user-editable. */
-    val issuedBy: String = "",
+    val location: String = "", // e.g. "Oakwood Sector, Blocks A-G"
+    val issuedBy: String = "", // set once at creation, not user-editable
     val timestamp: Long = System.currentTimeMillis()
 )

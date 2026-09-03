@@ -1,3 +1,4 @@
+// A password field with a show/hide toggle, shared by every screen that sets a password.
 package com.example.asgm.screen
 
 import androidx.compose.material.icons.Icons
@@ -16,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 
-/** A password OutlinedTextField with a show/hide (eye) toggle, shared by every screen that sets a password. */
 @Composable
 fun PasswordField(
     value: String,

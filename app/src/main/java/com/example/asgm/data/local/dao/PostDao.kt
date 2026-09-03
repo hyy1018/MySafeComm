@@ -1,3 +1,4 @@
+// Room queries for Community Feed posts, plus the unseen-activity-count for the Activity badge.
 package com.example.asgm.data.local.dao
 
 import androidx.room.Dao
@@ -15,7 +16,7 @@ interface PostDao {
     @Delete
     suspend fun delete(post: PostEntity)
 
-    /** Admin edits a post's content; marks it as edited and records who edited it. */
+    // admin edits a post's content, marking it edited and recording who did it
     @Query(
         "UPDATE posts SET content = :content, isEdited = 1, editedByAdminId = :adminId " +
             "WHERE postId = :postId"
@@ -28,8 +29,7 @@ interface PostDao {
     @Query("SELECT * FROM posts WHERE postId = :postId LIMIT 1")
     fun getById(postId: Long): Flow<PostEntity?>
 
-    /** Drives the Instagram-style activity badge: likes+comments on this person's own posts
-     * (excluding their own actions) since they last opened the activity feed. */
+    // likes+comments on this person's own posts (excluding self-actions) since they last checked
     @Query(
         "SELECT COUNT(*) FROM (" +
             "SELECT l.timestamp AS ts FROM likes l JOIN posts p ON l.postId = p.postId " +

@@ -1,3 +1,4 @@
+// Admin screen to browse posts; tapping one opens the shared post detail view.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.clickable
@@ -41,11 +42,6 @@ import java.util.Locale
 
 private val dateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
 
-/**
- * Admin screen: browse every Community Feed post. Tapping one opens the same PostDetailScreen a
- * resident sees for their own post -- Admin gets edit/delete-post/delete-comment there instead of
- * a separate inline dialog here, so it feels like the same "viewing a post" experience either way.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminPostsScreen(navController: NavHostController) {

@@ -1,3 +1,4 @@
+// Lets a signed-out user message an admin -- replaces the old "Forgot password" snackbar.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -40,14 +41,6 @@ import com.example.asgm.viewmodel.MessageViewModelFactory
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 
-/**
- * Reached from Login's "Forgot password?" -- replaces the old snackbar (which just told you to
- * "contact your admin" with no actual way to do it) with a real inbox message: type your ID
- * (since you're not signed in), pick which admin to send it to (the list grows automatically as
- * more admin accounts are added, since it's read straight from UserViewModel.users), and write
- * what you need. Not real-time chat -- the admin sees it in their Manage Messages inbox and
- * replies there, with a manual Refresh button to check for replies later.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactAdminScreen(navController: NavHostController) {

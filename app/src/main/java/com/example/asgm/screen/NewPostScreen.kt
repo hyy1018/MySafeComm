@@ -1,3 +1,4 @@
+// Compose a new Community Feed post.
 package com.example.asgm.screen
 
 import android.net.Uri
@@ -50,7 +51,6 @@ import com.example.asgm.viewmodel.PostViewModel
 import com.example.asgm.viewmodel.PostViewModelFactory
 import kotlinx.coroutines.launch
 
-/** User screen: create a new Community Feed post. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewPostScreen(navController: NavHostController) {

@@ -1,3 +1,4 @@
+// Room queries for the SOS emergency contacts list.
 package com.example.asgm.data.local.dao
 
 import androidx.room.Dao

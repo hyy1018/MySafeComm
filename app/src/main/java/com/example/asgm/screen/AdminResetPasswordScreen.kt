@@ -1,3 +1,4 @@
+// Admin screen: set a new password for an existing account.
 package com.example.asgm.screen
 
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +34,6 @@ import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
-/** Admin screen: set a new password for an existing account. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminResetPasswordScreen(navController: NavHostController) {
