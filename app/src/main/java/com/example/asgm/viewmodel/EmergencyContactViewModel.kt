@@ -1,3 +1,4 @@
+// #member3
 // ViewModel for the SOS emergency contacts list.
 package com.example.asgm.viewmodel
 

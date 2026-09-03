@@ -1,3 +1,4 @@
+// #member3
 // ViewModel for the SOS safety guide list and detail screen.
 package com.example.asgm.viewmodel
 

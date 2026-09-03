@@ -1,3 +1,4 @@
+// #member1
 // Tracks which resident confirmed which urgent alert. Composite key = one ack per user per alert.
 package com.example.asgm.data.local.entity
 

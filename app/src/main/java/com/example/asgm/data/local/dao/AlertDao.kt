@@ -1,3 +1,4 @@
+// #member1
 // Room queries for community alerts, plus the unacknowledged-urgent-count for the Alert badge.
 package com.example.asgm.data.local.dao
 

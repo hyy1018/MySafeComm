@@ -1,3 +1,4 @@
+// #member1
 // Tells Room how to store our enums (as their name string) and read them back.
 package com.example.asgm.data.local
 

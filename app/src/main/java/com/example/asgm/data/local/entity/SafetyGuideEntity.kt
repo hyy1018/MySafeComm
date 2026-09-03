@@ -1,3 +1,4 @@
+// #member1
 // One safety guide category (Fire, Flood, etc). Same class doubles as the Supabase row model.
 package com.example.asgm.data.local.entity
 

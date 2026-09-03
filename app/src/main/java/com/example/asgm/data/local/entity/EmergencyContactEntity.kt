@@ -1,3 +1,4 @@
+// #member1
 // One emergency contact shown in SOS. Same class doubles as the Supabase row model.
 package com.example.asgm.data.local.entity
 

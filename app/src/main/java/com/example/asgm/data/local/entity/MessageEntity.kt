@@ -1,3 +1,4 @@
+// #member1
 // One chat message. fromUserId/toUserId are generic, so this same table covers admin replies
 // and resident-to-resident chat -- a reply is just another row with the two ids swapped.
 package com.example.asgm.data.local.entity

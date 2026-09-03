@@ -1,3 +1,4 @@
+// #member1
 // A resident/admin account. Same class doubles as the Supabase row model.
 package com.example.asgm.data.local.entity
 

@@ -1,3 +1,4 @@
+// #member1
 // Resident's home screen: quick-post bar plus the module cards (Report, Alert, Comm, SOS).
 package com.example.asgm.screen
 

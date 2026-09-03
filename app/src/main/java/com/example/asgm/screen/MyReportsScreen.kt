@@ -1,3 +1,4 @@
+// #member2
 // A resident's own hazard reports and their status.
 package com.example.asgm.screen
 

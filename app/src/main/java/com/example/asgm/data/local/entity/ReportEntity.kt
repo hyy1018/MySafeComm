@@ -1,3 +1,4 @@
+// #member1
 // Hazard report submitted by a resident. Same class doubles as the Supabase row model.
 package com.example.asgm.data.local.entity
 

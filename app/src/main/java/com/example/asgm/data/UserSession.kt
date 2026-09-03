@@ -1,3 +1,4 @@
+// #member1
 // Who's currently logged in. In-memory only, so a fresh app launch always lands on Login.
 package com.example.asgm.data
 

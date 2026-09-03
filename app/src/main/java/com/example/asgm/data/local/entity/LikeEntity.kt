@@ -1,3 +1,4 @@
+// #member1
 // One like on a post. Composite key (postId, userId) means a user can only like a post once.
 package com.example.asgm.data.local.entity
 

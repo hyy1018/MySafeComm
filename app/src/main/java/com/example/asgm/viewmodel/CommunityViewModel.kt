@@ -1,3 +1,4 @@
+// #member4
 // ViewModels for Community Feed: posts, comments/replies, likes, and the Activity feed.
 package com.example.asgm.viewmodel
 

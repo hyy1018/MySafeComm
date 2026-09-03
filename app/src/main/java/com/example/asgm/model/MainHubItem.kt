@@ -1,3 +1,4 @@
+// #member1
 // One card on the Main Hub or Admin Hub grid.
 package com.example.asgm.model
 

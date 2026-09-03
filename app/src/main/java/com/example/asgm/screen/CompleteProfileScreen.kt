@@ -1,3 +1,4 @@
+// #member1
 // Mandatory profile setup right after signup (avatar, name, phone, address, email).
 package com.example.asgm.screen
 

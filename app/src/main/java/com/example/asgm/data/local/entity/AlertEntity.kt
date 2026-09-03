@@ -1,3 +1,4 @@
+// #member1
 // Community notice shown in Live Alerts. Same class doubles as the Supabase row model.
 package com.example.asgm.data.local.entity
 

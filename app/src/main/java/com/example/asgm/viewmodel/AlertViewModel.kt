@@ -1,3 +1,4 @@
+// #member2
 // ViewModel for community alerts: resident's Live Alerts list, Admin add/edit/delete.
 package com.example.asgm.viewmodel
 

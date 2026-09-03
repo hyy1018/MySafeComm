@@ -1,3 +1,4 @@
+// #member1
 // ViewModels for chat messages: sending, thread view, and the inbox list.
 package com.example.asgm.viewmodel
 

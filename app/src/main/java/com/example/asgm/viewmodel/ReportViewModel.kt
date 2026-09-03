@@ -1,3 +1,4 @@
+// #member2
 // ViewModel for hazard reports: Admin's full list, new-report submission, edit/delete.
 package com.example.asgm.viewmodel
 

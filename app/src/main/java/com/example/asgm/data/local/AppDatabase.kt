@@ -1,3 +1,4 @@
+// #member1
 // The Room database: table list, DAOs, and seed data for a fresh install.
 package com.example.asgm.data.local
 

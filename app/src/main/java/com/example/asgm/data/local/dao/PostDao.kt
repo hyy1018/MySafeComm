@@ -1,3 +1,4 @@
+// #member1
 // Room queries for Community Feed posts, plus the unseen-activity-count for the Activity badge.
 package com.example.asgm.data.local.dao
 

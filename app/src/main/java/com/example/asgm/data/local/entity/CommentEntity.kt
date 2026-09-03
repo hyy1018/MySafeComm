@@ -1,3 +1,4 @@
+// #member1
 // A comment on a post, or a reply to one (see parentCommentId). Doubles as the Supabase row model.
 package com.example.asgm.data.local.entity
 

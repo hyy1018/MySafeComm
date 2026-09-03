@@ -1,3 +1,4 @@
+// #member1
 // ViewModel for login, signup, and profile writes. Shared by every screen that needs the
 // full user list or an account write (login, signup, edit profile, admin add-admin).
 package com.example.asgm.viewmodel
