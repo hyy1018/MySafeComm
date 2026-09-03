@@ -80,13 +80,15 @@ is unchanged. The bottom nav and Main Hub both dropped their separate Guide entr
 
 `LoginScreen` is now the app's actual start destination, gating everything else; `UserSession`
 (in-memory, cleared on process death) tracks who is signed in, replacing the earlier hardcoded
-`DemoSession` placeholder. Two seeded test accounts (idempotent `INSERT OR IGNORE`, so they
+`DemoSession` placeholder. Four seeded test accounts (idempotent `INSERT OR IGNORE`, so they
 appear on every install without needing a fresh database):
 
 | ID | Password | Role |
 |---|---|---|
 | test1 | abc123456 | RESIDENT |
-| admin1 | abc123456 | ADMIN |
+| test2 | abc123456 | RESIDENT |
+| admin1 | 123456 | ADMIN |
+| admin2 | 123456 | ADMIN |
 
 "Sign Up" lets anyone self-register a RESIDENT account with just an ID + password (no way to
 self-register as Admin). Passwords everywhere they're set (Sign Up, Admin's Add Admin, Admin's

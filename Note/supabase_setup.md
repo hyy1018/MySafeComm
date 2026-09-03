@@ -138,7 +138,9 @@ alter table messages disable row level security;
 -- Seed the same starting data the local Room DB seeds, so both stores start in sync.
 insert into users (id, password, name, role, phone, address, email) values
   ('test1', 'abc123456', 'Test User', 'RESIDENT', '0000000000', '', 'test1@example.com'),
-  ('admin1', 'abc123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com')
+  ('test2', 'abc123456', 'Test User 2', 'RESIDENT', '0000000000', '', 'test2@example.com'),
+  ('admin1', '123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com'),
+  ('admin2', '123456', 'Demo Admin 2', 'ADMIN', '0000000000', '', 'admin2@example.com')
 on conflict (id) do nothing;
 
 insert into emergency_contacts ("serviceId", name, "phoneNo", "categoryEmergency") values
@@ -150,10 +152,84 @@ insert into emergency_contacts ("serviceId", name, "phoneNo", "categoryEmergency
 on conflict ("serviceId") do nothing;
 ```
 
-The 4 alerts and 4 safety guides have long text bodies — skip seeding those from SQL;
-they'll appear in Supabase automatically the first time the app runs against a
-configured project, because the Room seeding path in `AppDatabase.kt` and the
-ViewModel's dual-write both fire from the same app code once real credentials are in.
+The 4 alerts and 4 safety guides below have long text bodies, so they're seeded separately
+in section 5's reset script rather than cluttering the initial create-tables block above.
+Note that unlike users/emergency_contacts, they do **not** appear in Supabase on their own —
+the local Room seeding path in `AppDatabase.kt` writes with raw SQL, bypassing the ViewModel's
+dual-write entirely, so a fresh project needs the reset script run once to get them.
+
+## 5. Resetting to a clean demo state
+
+Run this whenever testing has left junk data behind and you want exactly the 4 accounts
+above plus the original sample content, with nothing else. It's safe to re-run any time —
+every table gets cleared and rebuilt from the same fixed list each time.
+
+```sql
+-- Everything here only ever holds content created by using the app (posts, replies,
+-- reports, chats, alert reads) -- wipe it all, regardless of which account made it.
+truncate table alert_acknowledgements, messages, likes, comments, posts, reports cascade;
+
+-- Drop any account made through Sign Up during testing; deleting a user cascades to
+-- delete anything still referencing it (already-emptied by the truncate above, but a
+-- user row itself has no other reason to survive).
+delete from users where id not in ('test1', 'test2', 'admin1', 'admin2');
+
+insert into users (id, password, name, role, phone, address, email, "lastSeenActivityAt", "lastSeenMessagesAt")
+values
+  ('test1', 'abc123456', 'Test User', 'RESIDENT', '0000000000', '', 'test1@example.com', 0, 0),
+  ('test2', 'abc123456', 'Test User 2', 'RESIDENT', '0000000000', '', 'test2@example.com', 0, 0),
+  ('admin1', '123456', 'Demo Admin', 'ADMIN', '0000000000', '', 'admin1@example.com', 0, 0),
+  ('admin2', '123456', 'Demo Admin 2', 'ADMIN', '0000000000', '', 'admin2@example.com', 0, 0)
+on conflict (id) do update set
+  password = excluded.password,
+  name = excluded.name,
+  role = excluded.role,
+  phone = excluded.phone,
+  email = excluded.email;
+
+-- Alerts are editable through Admin, so reset them back to exactly the 4 the app ships
+-- with in case testing added or changed any.
+delete from alerts;
+insert into alerts ("alertId", title, body, priority, location, "issuedBy", timestamp) values
+  (1, 'Water Main Maintenance', 'Water supply will be interrupted from 14:00 to 18:00 today for scheduled infrastructure maintenance. Residents are advised to store water in advance.', 'URGENT', 'Oakwood Sector, Blocks A-G', 'Facilities Management Office', (extract(epoch from now()) * 1000)::bigint),
+  (2, 'Community Town Hall Meeting', 'All residents are invited to attend the quarterly town hall meeting to discuss community matters and upcoming projects.', 'INFO', 'Community Hall, Ground Floor', 'Community Management Office', (extract(epoch from now()) * 1000)::bigint - 1000),
+  (3, 'New Security Patrol Route', 'Enhanced surveillance and foot patrols have been implemented in Zone 4 following recent resident feedback.', 'INFO', 'Zone 4', 'Neighborhood Security Team', (extract(epoch from now()) * 1000)::bigint - 2000),
+  (4, 'Park Cleaning Drive', 'Volunteers are needed for the community park cleaning drive this weekend. Gloves and equipment will be provided.', 'INFO', 'Central Community Park', 'Community Management Office', (extract(epoch from now()) * 1000)::bigint - 3000);
+
+-- Safety guides and emergency contacts have no Admin edit screen, so they can't have
+-- drifted from testing -- this just fills them in if this project never had them.
+insert into safety_guides ("guideId", "categorySafety", steps) values
+  (1, 'Fire', 'Assess the Situation||Immediately identify the source and size of the fire. If it is larger than a small trash can, do not attempt to fight it yourself.
+Alert the Household||Shout FIRE loudly to ensure everyone is awake and aware. Use the persistent SOS button in the app to notify community responders immediately.
+Evacuate Immediately||Leave the building using the nearest safe exit. Do not stop to collect personal belongings. Stay low to the floor if there is smoke.
+Call Emergency Services||Once outside in a safe location, call 994 or your local emergency number. Provide clear details of your location and the fire status.'),
+  (2, 'Flood', 'Move to High Ground||Relocate to the highest level of your home or building immediately.
+Turn Off Utilities||Switch off electricity and gas at the mains if it is safe to do so.
+Avoid Floodwater||Do not walk or drive through moving water; six inches can knock you down.
+Call for Help||Use the SOS button or call Civil Defence (991) if water continues to rise.'),
+  (3, 'Power Outage', 'Use Torches, Not Candles||Avoid open flames; use flashlights or battery-powered lanterns.
+Unplug Appliances||Prevent damage from power surges when electricity returns.
+Check on Neighbours||Especially elderly residents or those relying on medical equipment.
+Report the Outage||Use Hazard Reporting or call the Neighborhood Security line.'),
+  (4, 'Earthquake', 'Drop, Cover, and Hold On||Get under sturdy furniture and hold on until the shaking stops.
+Stay Away from Windows||Move away from glass, mirrors, and heavy furniture that could fall.
+Evacuate After Shaking Stops||Use stairs, not elevators, and head to an open area.
+Check for Injuries and Hazards||Assist others if safe to do so, and report gas leaks or structural damage.')
+on conflict ("guideId") do nothing;
+
+insert into emergency_contacts ("serviceId", name, "phoneNo", "categoryEmergency") values
+  (1, 'General Emergency', '999', 'Police and ambulance'),
+  (2, 'Scam Response', '997', 'Report suspected scams'),
+  (3, 'Civil Defence (APM)', '991', 'Floods, trees, snakes'),
+  (4, 'Fire and Rescue', '994', 'Fire emergencies'),
+  (5, 'Neighborhood Security', '012-345-6789', 'Direct line to community patrol')
+on conflict ("serviceId") do nothing;
+```
+
+On the phone side, this same reset happens by bumping `AppDatabase`'s `@Database(version = ...)`
+-- `fallbackToDestructiveMigration` drops every local table and `onOpen`'s seed functions rebuild
+just the 4 accounts and the original sample alerts/contacts/guides, the same as this script does
+remotely. That bump already shipped; installing the updated app is all the local side needs.
 
 ## 3. Get the URL and key
 
