@@ -228,7 +228,15 @@ private fun LazyGridScope.contactCards(
 }
 
 private fun dialContact(context: android.content.Context, phoneNo: String) {
-    context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phoneNo")))
+    try {
+        context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phoneNo")))
+    } catch (e: Exception) {
+        android.widget.Toast.makeText(
+            context,
+            "No phone dialer application found on this device",
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
+    }
 }
 
 @Composable

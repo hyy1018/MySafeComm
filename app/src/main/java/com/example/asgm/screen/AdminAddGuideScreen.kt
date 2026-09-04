@@ -177,7 +177,11 @@ fun AdminAddGuideScreen(guideId: Long = -1L, navController: NavHostController) {
                     onClick = {
                         val stepsText = steps
                             .filter { it.title.isNotBlank() && it.description.isNotBlank() }
-                            .joinToString("\n") { "${it.title.trim()}||${it.description.trim()}" }
+                            .joinToString("\n") {
+                                val cleanTitle = it.title.replace("||", " - ").replace("\n", " ").trim()
+                                val cleanDesc = it.description.replace("||", " - ").replace("\n", " ").trim()
+                                "$cleanTitle||$cleanDesc"
+                            }
                         if (isEditing) {
                             existingGuide?.let {
                                 viewModel.updateGuide(it.copy(categorySafety = category.trim(), steps = stepsText))
