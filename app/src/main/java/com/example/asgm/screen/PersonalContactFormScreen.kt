@@ -36,6 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.data.sanitizePhone
 import com.example.asgm.viewmodel.EmergencyContactDetailViewModel
 import com.example.asgm.viewmodel.EmergencyContactDetailViewModelFactory
 import com.example.asgm.viewmodel.PersonalContactViewModel
@@ -105,7 +106,7 @@ fun PersonalContactFormScreen(contactId: Long = -1L, navController: NavHostContr
             )
             OutlinedTextField(
                 value = phone,
-                onValueChange = { input -> phone = input.filter { it.isDigit() || it == '-' } },
+                onValueChange = { input -> phone = sanitizePhone(input) },
                 label = { Text("Phone Number") },
                 placeholder = { Text("e.g., 012-345-6789") },
                 singleLine = true,

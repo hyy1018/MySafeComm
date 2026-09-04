@@ -48,6 +48,7 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.data.sanitizePhone
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
@@ -130,7 +131,7 @@ fun CompleteProfileScreen(navController: NavHostController) {
             )
             OutlinedTextField(
                 value = phone,
-                onValueChange = { input -> phone = input.filter { it.isDigit() }; errorMessage = null },
+                onValueChange = { input -> phone = sanitizePhone(input); errorMessage = null },
                 label = { Text("Phone Number (optional)") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),

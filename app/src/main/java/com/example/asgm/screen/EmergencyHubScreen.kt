@@ -140,7 +140,7 @@ fun EmergencyHubScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (personal.isNotEmpty()) {
-                sectionHeader("Your Personal Emergency Contacts")
+                sectionHeader("Your Personal Emergency Contacts (Max $MAX_PERSONAL_CONTACTS)")
                 contactCards(personal, keyPrefix = "personal") { contact, cardModifier ->
                     ContactCard(
                         contact = contact,
