@@ -6,6 +6,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.asgm.data.local.entity.LikeEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -13,6 +14,10 @@ import kotlinx.coroutines.flow.Flow
 interface LikeDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun like(like: LikeEntity)
+
+    // bulk merge from the cloud pull
+    @Upsert
+    suspend fun upsertAll(likes: List<LikeEntity>)
 
     @Query("DELETE FROM likes WHERE postId = :postId AND userId = :userId")
     suspend fun unlike(postId: Long, userId: String)

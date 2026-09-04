@@ -7,6 +7,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.example.asgm.data.local.entity.CommentEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -14,6 +15,10 @@ import kotlinx.coroutines.flow.Flow
 interface CommentDao {
     @Insert
     suspend fun insert(comment: CommentEntity): Long
+
+    // bulk merge from the cloud pull
+    @Upsert
+    suspend fun upsertAll(comments: List<CommentEntity>)
 
     @Update
     suspend fun update(comment: CommentEntity)

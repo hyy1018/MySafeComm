@@ -7,6 +7,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.example.asgm.data.local.entity.SafetyGuideEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -14,6 +15,10 @@ import kotlinx.coroutines.flow.Flow
 interface SafetyGuideDao {
     @Insert
     suspend fun insert(guide: SafetyGuideEntity): Long
+
+    // bulk merge from the cloud pull
+    @Upsert
+    suspend fun upsertAll(guides: List<SafetyGuideEntity>)
 
     @Update
     suspend fun update(guide: SafetyGuideEntity)

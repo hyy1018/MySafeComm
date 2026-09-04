@@ -6,6 +6,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.asgm.data.local.entity.PostEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -13,6 +14,10 @@ import kotlinx.coroutines.flow.Flow
 interface PostDao {
     @Insert
     suspend fun insert(post: PostEntity): Long
+
+    // bulk merge from the cloud pull
+    @Upsert
+    suspend fun upsertAll(posts: List<PostEntity>)
 
     @Delete
     suspend fun delete(post: PostEntity)

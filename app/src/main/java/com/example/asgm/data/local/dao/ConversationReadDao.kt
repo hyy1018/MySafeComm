@@ -7,6 +7,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.asgm.data.local.entity.ConversationReadEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -18,6 +19,10 @@ interface ConversationReadDao {
     // called when the owner opens a conversation -- stamps "read up to now"
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun markRead(read: ConversationReadEntity)
+
+    // bulk merge from the cloud pull
+    @Upsert
+    suspend fun upsertAll(reads: List<ConversationReadEntity>)
 
     // unread count grouped by sender: messages TO me, FROM someone else, newer than the last
     // time I opened that person's conversation (COALESCE -> 0 when I never opened it)

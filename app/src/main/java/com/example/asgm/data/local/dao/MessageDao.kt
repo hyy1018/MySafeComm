@@ -8,6 +8,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.example.asgm.data.local.entity.MessageEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +16,10 @@ import kotlinx.coroutines.flow.Flow
 interface MessageDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(message: MessageEntity): Long
+
+    // bulk merge from the cloud pull
+    @Upsert
+    suspend fun upsertAll(messages: List<MessageEntity>)
 
     // for merging messages pulled from Supabase (MessageViewModel.refreshFromCloud) -- IGNORE
     // skips a message this device already has instead of erroring on the duplicate id

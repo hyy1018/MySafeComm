@@ -37,6 +37,7 @@ import androidx.navigation.NavHostController
 import com.example.asgm.data.PasswordRules
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.data.remote.CloudSync
 import com.example.asgm.data.local.entity.UserEntity
 import com.example.asgm.data.local.entity.UserRole
 import com.example.asgm.viewmodel.UserViewModel
@@ -143,6 +144,8 @@ fun SignUpScreen(navController: NavHostController) {
                             )
                             userViewModel.signUp(newUser)
                             UserSession.login(newUser)
+                            // pull existing community data (posts, alerts, contacts...) into Room
+                            CloudSync.pull(context)
                             isSubmitting = false
                             navController.navigate("complete_profile") {
                                 popUpTo("signup") { inclusive = true }

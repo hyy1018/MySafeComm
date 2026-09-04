@@ -8,6 +8,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.example.asgm.data.local.entity.UserEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +16,10 @@ import kotlinx.coroutines.flow.Flow
 interface UserDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(user: UserEntity)
+
+    // bulk merge from the cloud pull -- updates existing rows, inserts new ones, never deletes
+    @Upsert
+    suspend fun upsertAll(users: List<UserEntity>)
 
     @Update
     suspend fun update(user: UserEntity)

@@ -50,6 +50,7 @@ import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.data.local.entity.UserRole
+import com.example.asgm.data.remote.CloudSync
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
@@ -194,6 +195,8 @@ fun LoginScreen(navController: NavHostController) {
                                     user == null || !tabMatchesRole -> errorMessage = "Invalid ID or password"
                                     else -> {
                                         UserSession.login(user)
+                                        // pull the latest cloud copy of every table into Room
+                                        CloudSync.pull(context)
                                         val destination = if (user.role == UserRole.ADMIN) "admin_hub" else "main_hub"
                                         navController.navigate(destination) {
                                             popUpTo("login") { inclusive = true }

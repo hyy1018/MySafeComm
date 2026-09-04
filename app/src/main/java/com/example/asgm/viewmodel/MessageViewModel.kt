@@ -113,13 +113,21 @@ class MessageThreadViewModel(
     // stamp this conversation "read up to now" -- called on open and when a new message
     // lands while the thread is on screen, so its inbox badge clears.
     fun markRead() = viewModelScope.launch {
-        conversationReadDao.markRead(
-            ConversationReadEntity(
-                ownerId = myUserId,
-                partnerId = otherUserId,
-                lastReadAt = System.currentTimeMillis()
-            )
+        val read = ConversationReadEntity(
+            ownerId = myUserId,
+            partnerId = otherUserId,
+            lastReadAt = System.currentTimeMillis()
         )
+        conversationReadDao.markRead(read)
+        if (isSupabaseConfigured) {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("conversation_reads").upsert(read)
+                }
+            } catch (e: Exception) {
+                // Cloud copy failed -- local Room copy already saved.
+            }
+        }
     }
 }
 

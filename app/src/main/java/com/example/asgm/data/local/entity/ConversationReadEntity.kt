@@ -6,7 +6,9 @@ package com.example.asgm.data.local.entity
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(
     tableName = "conversation_reads",
     primaryKeys = ["ownerId", "partnerId"],

@@ -7,6 +7,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.example.asgm.data.local.entity.EmergencyContactEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -14,6 +15,10 @@ import kotlinx.coroutines.flow.Flow
 interface EmergencyContactDao {
     @Insert
     suspend fun insert(contact: EmergencyContactEntity): Long
+
+    // bulk merge from the cloud pull
+    @Upsert
+    suspend fun upsertAll(contacts: List<EmergencyContactEntity>)
 
     @Update
     suspend fun update(contact: EmergencyContactEntity)

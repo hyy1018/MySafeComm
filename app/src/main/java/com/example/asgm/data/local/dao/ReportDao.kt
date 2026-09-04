@@ -7,6 +7,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.example.asgm.data.local.entity.ReportEntity
 import com.example.asgm.data.local.entity.ReportStatus
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +16,10 @@ import kotlinx.coroutines.flow.Flow
 interface ReportDao {
     @Insert
     suspend fun insert(report: ReportEntity): Long
+
+    // bulk merge from the cloud pull
+    @Upsert
+    suspend fun upsertAll(reports: List<ReportEntity>)
 
     @Update
     suspend fun update(report: ReportEntity)
