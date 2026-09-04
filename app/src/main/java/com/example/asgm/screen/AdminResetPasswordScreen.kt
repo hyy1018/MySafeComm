@@ -54,7 +54,7 @@ fun AdminResetPasswordScreen(navController: NavHostController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reset User Password") },
+                title = { Text("Reset User/Admin Password") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -75,7 +75,7 @@ fun AdminResetPasswordScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = id,
                 onValueChange = { id = it; message = null },
-                label = { Text("User ID") },
+                label = { Text("User/Admin ID") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )

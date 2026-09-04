@@ -1,7 +1,7 @@
 // #member3
 // SOS screen: the resident's own private emergency contacts, the community contacts, and
 // safety guides in one page. The private section (and its divider/header) only appears when
-// the resident has added at least one; otherwise the page looks exactly as before.
+// the resident has added at least one; the "General Emergency Contacts" header always shows.
 package com.example.asgm.screen
 
 import android.content.Intent
@@ -152,8 +152,9 @@ fun EmergencyHubScreen(navController: NavHostController) {
                     )
                 }
                 fullSpanDivider()
-                sectionHeader("General Emergency Contacts")
             }
+
+            sectionHeader("General Emergency Contacts")
 
             contactCards(community, keyPrefix = "community") { contact, cardModifier ->
                 ContactCard(contact = contact, modifier = cardModifier)

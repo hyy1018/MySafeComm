@@ -63,8 +63,8 @@ fun AdminUsersScreen(navController: NavHostController) {
             )
             UserTaskCard(
                 icon = Icons.Filled.LockReset,
-                title = "Reset User Password",
-                subtitle = "Set a new password for an existing account",
+                title = "Reset User/Admin Password",
+                subtitle = "Set a new password for any existing account",
                 onClick = { navController.navigate("admin_reset_password") }
             )
             UserTaskCard(
