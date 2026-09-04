@@ -48,6 +48,8 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.data.PHONE_LENGTH_MESSAGE
+import com.example.asgm.data.isValidPhone
 import com.example.asgm.data.sanitizePhone
 import com.example.asgm.viewmodel.UserViewModel
 import com.example.asgm.viewmodel.UserViewModelFactory
@@ -165,6 +167,10 @@ fun CompleteProfileScreen(navController: NavHostController) {
                     }
                     if (trimmedEmail.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
                         errorMessage = "Enter a valid email address"
+                        return@Button
+                    }
+                    if (phone.isNotBlank() && !isValidPhone(phone)) {
+                        errorMessage = PHONE_LENGTH_MESSAGE
                         return@Button
                     }
                     isSaving = true

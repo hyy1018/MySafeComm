@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,6 +37,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
+import com.example.asgm.data.PHONE_LENGTH_MESSAGE
+import com.example.asgm.data.isValidPhone
 import com.example.asgm.data.sanitizePhone
 import com.example.asgm.viewmodel.EmergencyContactDetailViewModel
 import com.example.asgm.viewmodel.EmergencyContactDetailViewModelFactory
@@ -63,6 +66,7 @@ fun PersonalContactFormScreen(contactId: Long = -1L, navController: NavHostContr
 
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
     var loadedExisting by remember { mutableStateOf(false) }
 
     LaunchedEffect(existing) {
@@ -106,15 +110,22 @@ fun PersonalContactFormScreen(contactId: Long = -1L, navController: NavHostContr
             )
             OutlinedTextField(
                 value = phone,
-                onValueChange = { input -> phone = sanitizePhone(input) },
+                onValueChange = { input -> phone = sanitizePhone(input); error = null },
                 label = { Text("Phone Number") },
                 placeholder = { Text("e.g., 012-345-6789") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth()
             )
+            error?.let {
+                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
             Button(
                 onClick = {
+                    if (!isValidPhone(phone)) {
+                        error = PHONE_LENGTH_MESSAGE
+                        return@Button
+                    }
                     if (isEditing) {
                         existing?.let {
                             viewModel.update(it.copy(name = name.trim(), phoneNo = phone.trim()))
