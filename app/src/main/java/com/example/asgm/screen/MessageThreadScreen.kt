@@ -68,7 +68,11 @@ fun MessageThreadScreen(myUserId: String, otherUserId: String, navController: Na
     val db = remember { AppDatabase.getInstance(context) }
 
     val threadViewModel: MessageThreadViewModel =
-        viewModel(factory = MessageThreadViewModelFactory(db.messageDao(), myUserId, otherUserId))
+        viewModel(
+            factory = MessageThreadViewModelFactory(
+                db.messageDao(), db.conversationReadDao(), myUserId, otherUserId
+            )
+        )
     val messageViewModel: MessageViewModel = viewModel(factory = MessageViewModelFactory(db.messageDao()))
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
     val messages by threadViewModel.messages.collectAsState()
@@ -85,6 +89,11 @@ fun MessageThreadScreen(myUserId: String, otherUserId: String, navController: Na
     val listState = rememberLazyListState()
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) listState.scrollToItem(messages.lastIndex)
+    }
+
+    // Reading the thread clears its unread badge in the inbox; re-stamp when new messages land.
+    LaunchedEffect(messages) {
+        if (messages.isNotEmpty()) threadViewModel.markRead()
     }
 
     Scaffold(

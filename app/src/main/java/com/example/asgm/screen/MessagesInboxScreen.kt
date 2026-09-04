@@ -20,6 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -54,18 +56,17 @@ fun MessagesInboxScreen(userId: String, navController: NavHostController) {
     val db = remember { AppDatabase.getInstance(context) }
 
     val inboxViewModel: MessagesInboxViewModel =
-        viewModel(factory = MessagesInboxViewModelFactory(db.messageDao(), userId))
+        viewModel(factory = MessagesInboxViewModelFactory(db.messageDao(), db.conversationReadDao(), userId))
     val messageViewModel: MessageViewModel = viewModel(factory = MessageViewModelFactory(db.messageDao()))
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
     val partnerIds by inboxViewModel.partnerIds.collectAsState()
+    val unreadByPartner by inboxViewModel.unreadByPartner.collectAsState()
     val users by userViewModel.users.collectAsState()
 
-    // Check the cloud once when the inbox opens, in addition to the manual Refresh button, and
-    // mark "seen" so the unread badge (wherever this userId's Messages entry point shows one)
-    // clears -- same pattern as ActivityScreen's lastSeenActivityAt.
+    // Pull any cloud-only messages once on open, same as the manual Refresh button. Read state
+    // is now per-conversation -- each row's badge clears when you open that thread, not here.
     LaunchedEffect(Unit) {
         messageViewModel.refreshFromCloud(userId)
-        userViewModel.updateLastSeenMessages(userId, System.currentTimeMillis())
     }
 
     Scaffold(
@@ -100,6 +101,7 @@ fun MessagesInboxScreen(userId: String, navController: NavHostController) {
             ) {
                 items(partnerIds, key = { it }) { partnerId ->
                     val partnerName = users.find { it.id == partnerId }?.name ?: partnerId
+                    val unread = unreadByPartner[partnerId] ?: 0
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -109,7 +111,9 @@ fun MessagesInboxScreen(userId: String, navController: NavHostController) {
                             modifier = Modifier.fillMaxWidth().padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Filled.Person, contentDescription = null)
+                            BadgedBox(badge = { if (unread > 0) Badge { Text("$unread") } }) {
+                                Icon(Icons.Filled.Person, contentDescription = null)
+                            }
                             Spacer(Modifier.width(12.dp))
                             Column {
                                 Text(partnerName, style = MaterialTheme.typography.titleSmall)

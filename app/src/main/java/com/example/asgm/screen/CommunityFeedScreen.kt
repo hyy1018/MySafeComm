@@ -85,14 +85,10 @@ fun CommunityFeedScreen(navController: NavHostController) {
             emptyFlow()
         }
     ).collectAsState(initial = 0)
-    // Same reasoning: unread direct messages (from other residents or an admin's reply), badged
-    // on the People icon since that's the entry point to Members and its per-person chat.
+    // Same reasoning: total unread direct messages (from other residents or an admin's reply),
+    // badged on the People icon since that's the entry point to Members and its per-person chat.
     val unseenMessageCount by (
-        if (userId != null) {
-            db.messageDao().getUnseenMessageCount(userId, currentUser?.lastSeenMessagesAt ?: 0)
-        } else {
-            emptyFlow()
-        }
+        if (userId != null) db.conversationReadDao().totalUnread(userId) else emptyFlow()
     ).collectAsState(initial = 0)
 
     Scaffold(

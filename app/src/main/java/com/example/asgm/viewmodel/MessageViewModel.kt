@@ -5,7 +5,9 @@ package com.example.asgm.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.asgm.data.local.dao.ConversationReadDao
 import com.example.asgm.data.local.dao.MessageDao
+import com.example.asgm.data.local.entity.ConversationReadEntity
 import com.example.asgm.data.local.entity.MessageEntity
 import com.example.asgm.data.remote.isSupabaseConfigured
 import com.example.asgm.data.remote.supabase
@@ -13,6 +15,7 @@ import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -98,40 +101,67 @@ class MessageViewModelFactory(private val dao: MessageDao) : ViewModelProvider.F
 }
 
 // Backs one thread view: every message between two specific people.
-class MessageThreadViewModel(dao: MessageDao, userA: String, userB: String) : ViewModel() {
-    val messages: StateFlow<List<MessageEntity>> = dao.getThread(userA, userB)
+class MessageThreadViewModel(
+    messageDao: MessageDao,
+    private val conversationReadDao: ConversationReadDao,
+    private val myUserId: String,
+    private val otherUserId: String
+) : ViewModel() {
+    val messages: StateFlow<List<MessageEntity>> = messageDao.getThread(myUserId, otherUserId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // stamp this conversation "read up to now" -- called on open and when a new message
+    // lands while the thread is on screen, so its inbox badge clears.
+    fun markRead() = viewModelScope.launch {
+        conversationReadDao.markRead(
+            ConversationReadEntity(
+                ownerId = myUserId,
+                partnerId = otherUserId,
+                lastReadAt = System.currentTimeMillis()
+            )
+        )
+    }
 }
 
 class MessageThreadViewModelFactory(
-    private val dao: MessageDao,
-    private val userA: String,
-    private val userB: String
+    private val messageDao: MessageDao,
+    private val conversationReadDao: ConversationReadDao,
+    private val myUserId: String,
+    private val otherUserId: String
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MessageThreadViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MessageThreadViewModel(dao, userA, userB) as T
+            return MessageThreadViewModel(messageDao, conversationReadDao, myUserId, otherUserId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
 
-// Backs MessagesInboxScreen: who this person has exchanged messages with. Same class for an
-// Admin checking resident messages and a resident checking theirs -- it's just a user id.
-class MessagesInboxViewModel(dao: MessageDao, userId: String) : ViewModel() {
-    val partnerIds: StateFlow<List<String>> = dao.getConversationPartnerIds(userId)
+// Backs MessagesInboxScreen: who this person has exchanged messages with, plus how many unread
+// each one has. Same class for an Admin checking resident messages and a resident checking theirs.
+class MessagesInboxViewModel(
+    messageDao: MessageDao,
+    conversationReadDao: ConversationReadDao,
+    userId: String
+) : ViewModel() {
+    val partnerIds: StateFlow<List<String>> = messageDao.getConversationPartnerIds(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val unreadByPartner: StateFlow<Map<String, Int>> = conversationReadDao.unreadByPartner(userId)
+        .map { rows -> rows.associate { it.partnerId to it.unread } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 }
 
 class MessagesInboxViewModelFactory(
-    private val dao: MessageDao,
+    private val messageDao: MessageDao,
+    private val conversationReadDao: ConversationReadDao,
     private val userId: String
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MessagesInboxViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MessagesInboxViewModel(dao, userId) as T
+            return MessagesInboxViewModel(messageDao, conversationReadDao, userId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

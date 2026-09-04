@@ -79,13 +79,10 @@ fun MainHubScreen(
     val users by userViewModel.users.collectAsState()
     val currentUser = users.find { it.id == userId }
     val scope = rememberCoroutineScope()
-    // Same badge computation as Community Feed's People icon -- unread direct messages.
+    // Same badge computation as Community Feed's People icon -- total unread direct messages
+    // across all conversations.
     val unseenMessageCount by (
-        if (userId != null) {
-            db.messageDao().getUnseenMessageCount(userId, currentUser?.lastSeenMessagesAt ?: 0)
-        } else {
-            emptyFlow()
-        }
+        if (userId != null) db.conversationReadDao().totalUnread(userId) else emptyFlow()
     ).collectAsState(initial = 0)
 
     Scaffold(

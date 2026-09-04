@@ -40,14 +40,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asgm.data.AdminHubData
 import com.example.asgm.data.UserSession
 import com.example.asgm.data.local.AppDatabase
 import com.example.asgm.model.MainHubItem
-import com.example.asgm.viewmodel.UserViewModel
-import com.example.asgm.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.flow.emptyFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,13 +55,10 @@ fun AdminHubScreen(navController: NavHostController) {
     // Nullable, not requireUserId(): must not throw during a transient no-session composition
     // (process death restoring the back stack). See MyReportsScreen for the same reasoning.
     val adminId = UserSession.currentUserId
-    val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(db.userDao()))
-    val users by userViewModel.users.collectAsState()
-    val lastSeenMessagesAt = users.find { it.id == adminId }?.lastSeenMessagesAt ?: 0
-    // Cuts across Message+User, no single-entity ViewModel to live in cleanly -- same deliberate
-    // scope call as AppBottomBar's unseenActivityCount/unacknowledgedUrgentCount.
+    // Total unread messages across every conversation -- drives the Messages card badge. Each
+    // conversation's own count clears when the admin opens that thread.
     val unseenMessageCount by (
-        if (adminId != null) db.messageDao().getUnseenMessageCount(adminId, lastSeenMessagesAt) else emptyFlow()
+        if (adminId != null) db.conversationReadDao().totalUnread(adminId) else emptyFlow()
     ).collectAsState(initial = 0)
 
     Scaffold(

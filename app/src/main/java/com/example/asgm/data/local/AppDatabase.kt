@@ -11,6 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.asgm.data.local.dao.AlertAcknowledgementDao
 import com.example.asgm.data.local.dao.AlertDao
 import com.example.asgm.data.local.dao.CommentDao
+import com.example.asgm.data.local.dao.ConversationReadDao
 import com.example.asgm.data.local.dao.EmergencyContactDao
 import com.example.asgm.data.local.dao.LikeDao
 import com.example.asgm.data.local.dao.MessageDao
@@ -21,6 +22,7 @@ import com.example.asgm.data.local.dao.UserDao
 import com.example.asgm.data.local.entity.AlertAcknowledgementEntity
 import com.example.asgm.data.local.entity.AlertEntity
 import com.example.asgm.data.local.entity.CommentEntity
+import com.example.asgm.data.local.entity.ConversationReadEntity
 import com.example.asgm.data.local.entity.EmergencyContactEntity
 import com.example.asgm.data.local.entity.LikeEntity
 import com.example.asgm.data.local.entity.MessageEntity
@@ -40,9 +42,10 @@ import com.example.asgm.data.local.entity.UserEntity
         PostEntity::class,
         CommentEntity::class,
         LikeEntity::class,
-        MessageEntity::class
+        MessageEntity::class,
+        ConversationReadEntity::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -57,6 +60,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun commentDao(): CommentDao
     abstract fun likeDao(): LikeDao
     abstract fun messageDao(): MessageDao
+    abstract fun conversationReadDao(): ConversationReadDao
 
     companion object {
         @Volatile
